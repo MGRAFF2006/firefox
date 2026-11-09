@@ -22,12 +22,13 @@ from pathlib import Path
 
 from zoneinfo import ZoneInfo
 
-SOURCE = Path(__file__).resolve().parents[3]
+HERE = Path(__file__).resolve().parent
+TOOL_ROOT = HERE.parents[2]
 TIMEZONE = ZoneInfo("Europe/Berlin")
 
 # Reuse the reviewed repository custodian; fail closed on a missing or changed
 # dependency instead of importing a same-named module from the caller's path.
-LIFECYCLE_PATH = SOURCE / "tools/standards/lifecycle.py"
+LIFECYCLE_PATH = TOOL_ROOT / "tools/standards/lifecycle.py"
 LIFECYCLE_SHA256 = "c1854a305f633691f3991b094e7c2d5b84f3977385216212fae7d929ec346232"
 _lifecycle_bytes = LIFECYCLE_PATH.read_bytes()
 if hashlib.sha256(_lifecycle_bytes).hexdigest() != LIFECYCLE_SHA256:
@@ -37,10 +38,10 @@ lifecycle.__file__ = str(LIFECYCLE_PATH)
 exec(compile(_lifecycle_bytes, str(LIFECYCLE_PATH), "exec"), lifecycle.__dict__)
 
 
-def capture(*command, supervisor=None):
+def capture(*command, supervisor=None, source=TOOL_ROOT):
     if supervisor is not None:
-        return supervisor.output(list(command), SOURCE, dict(os.environ)).decode().strip()
-    return subprocess.check_output(command, text=True, stderr=subprocess.STDOUT).strip()
+        return supervisor.output(list(command), source, dict(os.environ)).decode().strip()
+    return subprocess.check_output(command, text=True, stderr=subprocess.STDOUT, cwd=source).strip()
 
 
 def digest(path):
@@ -53,10 +54,10 @@ def file_identity(path):
     return [status.st_dev, status.st_ino, status.st_size, status.st_mtime_ns]
 
 
-def browser_metadata(binary, supervisor=None):
+def browser_metadata(binary, supervisor=None, *, source=TOOL_ROOT):
     result = {
         "path": str(binary),
-        "version": capture(str(binary), "--version", supervisor=supervisor),
+        "version": capture(str(binary), "--version", source=source, supervisor=supervisor),
         "sha256": digest(binary),
         "file_identity": file_identity(binary),
     }
@@ -114,14 +115,14 @@ class WorkloadCancelled(Exception):
         super().__init__(f"Workload cancelled by signal {signum}")
 
 
-def run_workload(command, environment, log, supervisor):
+def run_workload(command, environment, log, supervisor, source=TOOL_ROOT):
     # Anonymous storage preserves environment-dump redaction without a second
     # process owner or a durable unredacted Raptor log. The custodian drains every
     # owned descendant, including separate sessions, before this call returns.
     with tempfile.TemporaryFile(mode="w+t") as raw:
         try:
             try:
-                return supervisor.run(command, SOURCE, environment, raw)
+                return supervisor.run(command, source, environment, raw)
             except lifecycle.Cancelled:
                 raise WorkloadCancelled(supervisor.cancelled or signal.SIGTERM)
         finally:
@@ -144,8 +145,8 @@ def swap_counters():
     }
 
 
-def collect_artifacts(run):
-    work = SOURCE / "testing/mozharness/build"
+def collect_artifacts(run, source=TOOL_ROOT):
+    work = source / "testing/mozharness/build"
     shared_upload = work / "blobber_upload_dir"
     if shared_upload.exists():
         shutil.move(str(shared_upload), str(run / "artifacts/mozharness"))
@@ -156,8 +157,22 @@ def collect_artifacts(run):
         shutil.move(str(screenshots), str(run / screenshots.name))
 
 
+def validate_source(value):
+    """Select a real harness checkout without letting it supply custody code."""
+    source = value.resolve(strict=True)
+    if not source.is_dir() or not (source / "mach").is_file():
+        raise ValueError("--source must name an existing checkout containing mach")
+    if not (source / "tools/performance/baseline/mozconfig").is_file():
+        raise ValueError("--source lacks the harness mozconfig")
+    return source
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--source", type=Path, default=TOOL_ROOT,
+        help="Existing Mach/Raptor harness checkout (defaults to the tool checkout)",
+    )
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--official", type=Path, required=True)
     parser.add_argument("--source-build", type=Path, required=True)
@@ -179,19 +194,20 @@ def main():
         parser.error("--rounds must be positive")
     if args.profile and args.only_browser not in (None, "source-firefox"):
         parser.error("Profiling is only supported for the preserved source Firefox")
+    source = validate_source(args.source)
     root = args.root.resolve()
     root.mkdir(parents=True, exist_ok=True)
     custody = root / "scoring-custody" / uuid.uuid4().hex / "state.json"
     return lifecycle.run_guarded(
         root / "resource.lock", custody,
-        lambda supervisor: run_comparison(args, root, supervisor),
+        lambda supervisor: run_comparison(args, root, supervisor, source),
     )
 
 
-def run_comparison(args, root, supervisor):
+def run_comparison(args, root, supervisor, source=TOOL_ROOT):
     with tempfile.TemporaryFile() as probe:
         if supervisor.run(["tmux", "has-session", "-t", "firefox-build"],
-                          SOURCE, dict(os.environ), probe) == 0:
+                          source, dict(os.environ), probe) == 0:
             raise SystemExit("Refusing to benchmark during firefox-build")
     if shutil.disk_usage(root).free < 10 * 1024**3:
         raise SystemExit("Less than 10 GiB disk reserve")
@@ -210,7 +226,7 @@ def run_comparison(args, root, supervisor):
             browser for browser in browsers if browser[0] == args.only_browser
         ]
     manifest = (
-        SOURCE / "testing/raptor/raptor/tests/benchmarks/speedometer-desktop.toml"
+        source / "testing/raptor/raptor/tests/benchmarks/speedometer-desktop.toml"
     )
     metadata = {
         "lifecycle": {
@@ -218,34 +234,34 @@ def run_comparison(args, root, supervisor):
             "sha256": LIFECYCLE_SHA256,
             "accepted_merge": "c0bef74e02eee17d5df7a952269bbfb1557cb2ad",
         },
-        "checkout_revision": capture("git", "-C", str(SOURCE), "rev-parse", "HEAD", supervisor=supervisor),
-        "source_diff": capture("git", "-C", str(SOURCE), "diff", "--stat", supervisor=supervisor),
+        "checkout_revision": capture("git", "-C", str(source), "rev-parse", "HEAD", source=source, supervisor=supervisor),
+        "source_diff": capture("git", "-C", str(source), "diff", "--stat", source=source, supervisor=supervisor),
         "host": platform.uname()._asdict(),
         "cpu": Path("/proc/cpuinfo").read_text(),
         "manifest_sha256": digest(manifest),
         "benchmark": {
             name: (
-                SOURCE / "third_party/webkit/PerformanceTests/Speedometer3" / name
+                source / "third_party/webkit/PerformanceTests/Speedometer3" / name
             ).read_text()
             for name in ("package.json", "moz.yaml")
         },
-        "mozconfig": (SOURCE / "tools/performance/baseline/mozconfig").read_text(),
+        "mozconfig": (source / "tools/performance/baseline/mozconfig").read_text(),
         "rounds": args.rounds,
         "profile_only": args.profile,
         "browsers": {
-            label: browser_metadata(binary, supervisor=supervisor) for label, _, binary in browsers
+            label: browser_metadata(binary, source=source, supervisor=supervisor) for label, _, binary in browsers
         },
-        "chromedriver": capture(str(args.chromedriver), "--version", supervisor=supervisor),
+        "chromedriver": capture(str(args.chromedriver), "--version", source=source, supervisor=supervisor),
         "geckodriver": capture(
             str(
-                SOURCE
+                source
                 / "tools/browsertime/node_modules/@sitespeed.io/geckodriver/vendor/geckodriver"
             ),
             "--version",
-            supervisor=supervisor,
+            source=source, supervisor=supervisor,
         ),
         "toolchain": {
-            name: capture(str(root / "state" / path), "--version", supervisor=supervisor)
+            name: capture(str(root / "state" / path), "--version", source=source, supervisor=supervisor)
             for name, path in {
                 "clang": "clang/bin/clang",
                 "rustc": "rustc/bin/rustc",
@@ -254,7 +270,7 @@ def run_comparison(args, root, supervisor):
             }.items()
         },
         "harness_sha256": {
-            name: digest(SOURCE / "tools/performance/baseline" / name)
+            name: digest(HERE / name)
             for name in (
                 "run.py",
                 "mozconfig",
@@ -266,7 +282,7 @@ def run_comparison(args, root, supervisor):
         },
         "browsertime_package": json.loads(
             (
-                SOURCE / "tools/browsertime/node_modules/browsertime/package.json"
+                source / "tools/browsertime/node_modules/browsertime/package.json"
             ).read_text()
         ),
     }
@@ -274,8 +290,26 @@ def run_comparison(args, root, supervisor):
     harness_snapshot.mkdir()
     for name in metadata["harness_sha256"]:
         shutil.copyfile(
-            SOURCE / "tools/performance/baseline" / name, harness_snapshot / name
+            HERE / name, harness_snapshot / name
         )
+    # Tool snapshots are the executed collector, not similarly named source files.
+    metadata["collector_semantics"] = "explicit-harness-source-v1"
+    metadata["tool_root"] = str(TOOL_ROOT)
+    metadata["harness_source"] = {
+        "path": str(source), "checkout_revision": metadata["checkout_revision"],
+        "source_diff": metadata["source_diff"],
+        "mozconfig_path": str(source / "tools/performance/baseline/mozconfig"),
+        "mozconfig_sha256": digest(source / "tools/performance/baseline/mozconfig"),
+        "mozconfig_snapshot": "harness/source-mozconfig",
+        "limits": "Harness identity/configuration only; not either supplied browser's compiled source/configuration.",
+    }
+    metadata["toolchain_scope"] = "Harness-side tools only; runtime build toolchains require separate role receipts."
+    metadata["browser_slots"] = {
+        "official-firefox": "Supplied control slot; official/PGO status is not implied by this legacy name.",
+        "source-firefox": "Supplied candidate slot; bind genuine runtime-role/build receipts separately.",
+        "chromium": "Supplied Chromium comparison runtime.",
+    }
+    shutil.copyfile(source / "tools/performance/baseline/mozconfig", harness_snapshot / "source-mozconfig")
     (output / "metadata.json").write_text(json.dumps(metadata, indent=2))
     runtime_dir = root / "tmp" / f"runtime-{stamp}"
     runtime_dir.mkdir(parents=True, mode=0o700)
@@ -286,7 +320,7 @@ def run_comparison(args, root, supervisor):
         "FIREFOX_BASELINE_ROOT": str(root),
         "MOZBUILD_STATE_PATH": str(root / "state"),
         "TMPDIR": str(root / "tmp"),
-        "MOZCONFIG": str(SOURCE / "tools/performance/baseline/mozconfig"),
+        "MOZCONFIG": str(source / "tools/performance/baseline/mozconfig"),
         "DISABLE_PROFILE_LAUNCH": "1",
         "MOZ_REMOTE_ALLOW_SYSTEM_ACCESS": "1",
         "PYTHONDONTWRITEBYTECODE": "1",
@@ -308,7 +342,7 @@ def run_comparison(args, root, supervisor):
             + browsers[: round_number % len(browsers)]
         )
         for label, app, binary in order:
-            shared_work = SOURCE / "testing/mozharness/build"
+            shared_work = source / "testing/mozharness/build"
             if (shared_work / "blobber_upload_dir").exists() or (
                 shared_work / "raptor.json"
             ).exists():
@@ -326,7 +360,7 @@ def run_comparison(args, root, supervisor):
                 "-a",
                 "-s",
                 "-screen 0 1920x1080x24",
-                str(SOURCE / "mach"),
+                str(source / "mach"),
                 "--no-interactive",
                 "raptor",
                 "--browsertime",
@@ -344,7 +378,7 @@ def run_comparison(args, root, supervisor):
                 str(args.chromedriver),
                 "--browsertime-geckodriver",
                 str(
-                    SOURCE
+                    source
                     / "tools/browsertime/node_modules/@sitespeed.io/geckodriver/vendor/geckodriver"
                 ),
                 "--browsertime-arg",
@@ -361,7 +395,7 @@ def run_comparison(args, root, supervisor):
                 "meminfo": Path("/proc/meminfo").read_text(),
                 "cpu_stat": Path("/proc/stat").read_text(),
                 "swap_counters": swap_counters(),
-                "processes": capture("ps", "-eo", "comm,pcpu,rss", "--sort=-pcpu", supervisor=supervisor),
+                "processes": capture("ps", "-eo", "comm,pcpu,rss", "--sort=-pcpu", source=source, supervisor=supervisor),
                 "started": datetime.datetime.now(TIMEZONE).isoformat(),
             }
             (run / "invocation.json").write_text(json.dumps(before, indent=2))
@@ -369,12 +403,12 @@ def run_comparison(args, root, supervisor):
             with (run / "raptor.log").open("w") as log:
                 try:
                     exit_code = run_workload(
-                        command, environment, log, supervisor
+                        command, environment, log, supervisor, source
                     )
                 except WorkloadCancelled as error:
                     cancelled_signal = error.signum
                     exit_code = 128 + error.signum
-            collect_artifacts(run)
+            collect_artifacts(run, source)
             swap_after = swap_counters()
             runtime_changes = changed_artifacts(metadata["browsers"][label])
             binary_changed = bool(runtime_changes)

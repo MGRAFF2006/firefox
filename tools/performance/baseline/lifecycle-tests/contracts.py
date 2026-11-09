@@ -60,6 +60,7 @@ def prepare(case, mode):
     root=case/'root'; source=case/'source'; binary=case/'binary/firefox'
     version='#!/bin/sh\nprintf "fixture-version\\n"\n'
     executable(binary,version)
+    executable(source/'mach','#!/bin/sh\nexit 99\n')
     for path in ('clang/bin/clang','rustc/bin/rustc','rustc/bin/cargo','node/bin/node'):
         executable(root/'state'/path,version)
     executable(source/'tools/browsertime/node_modules/@sitespeed.io/geckodriver/vendor/geckodriver',version)
@@ -127,8 +128,10 @@ def run_case(version, mode, output, module):
             deadline=time.monotonic()+8
             while time.monotonic()<deadline:
                 free=lock_free(root/'resource.lock')
-                existing=[item for item in records if same(item)]
-                live=[item for item in existing if identity(item['pid'])['state']!='Z']
+                # A disappearing actor must not be read twice for one observation.
+                observed=[(item,identity(item['pid'])) for item in records]
+                existing=[item for item,now in observed if now is not None and now['birth']==item['birth']]
+                live=[item for item,now in observed if now is not None and now['birth']==item['birth'] and now['state']!='Z']
                 observations.append({'free':free,'live':live,'existing':existing,'monotonic':time.monotonic()})
                 if free and live:
                     unlocked_live=True
