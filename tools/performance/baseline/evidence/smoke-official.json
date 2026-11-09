@@ -1,0 +1,33 @@
+{
+  "binary": "/srv/development/build/firefox-perf/official/firefox/firefox",
+  "capabilities": "159.0.1",
+  "features": {
+    "canvas": [
+      255,
+      0,
+      0,
+      255
+    ],
+    "userAgent": "Mozilla/5.0 (X11; Linux x86_64; rv:159.0) Gecko/20100101 Firefox/159.0",
+    "wasm": 42,
+    "webRTC": true
+  },
+  "preferences": {
+    "defaults": {
+      "browser.safebrowsing.malware.enabled": true,
+      "browser.safebrowsing.phishing.enabled": true,
+      "media.peerconnection.enabled": true,
+      "pdfjs.disabled": false,
+      "security.sandbox.content.level": 6,
+      "xpinstall.signatures.required": true
+    },
+    "effective": {
+      "browser.safebrowsing.malware.enabled": true,
+      "browser.safebrowsing.phishing.enabled": true,
+      "media.peerconnection.enabled": true,
+      "pdfjs.disabled": false,
+      "security.sandbox.content.level": 6,
+      "xpinstall.signatures.required": true
+    }
+  }
+}

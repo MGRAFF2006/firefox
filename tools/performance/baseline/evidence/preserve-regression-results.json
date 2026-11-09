@@ -1,0 +1,10 @@
+{
+  "allow_baseline_tooling_commit_and_bind_source_and_checkout": {
+    "passed": true,
+    "exit_code": 0
+  },
+  "reject_engine_mutation_before_packaging": {
+    "passed": true,
+    "exit_code": 1
+  }
+}

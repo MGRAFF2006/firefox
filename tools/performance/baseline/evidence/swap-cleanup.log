@@ -1,0 +1,10 @@
+2026-11-09T01:01:55+01:00
+               total        used        free      shared  buff/cache   available
+Mem:     33662742528  8582049792  8124452864    27475968 17519550464 25080692736
+Swap:    17179865088 14265577472  2914287616
+NAME                                           TYPE        SIZE        USED PRIO
+/srv/development/build/firefox-perf/build.swap file 17179865088 14265577472   -2
+2026-11-09T01:33:17+01:00
+               total        used        free      shared  buff/cache   available
+Mem:     33662742528 22747799552   303808512 11214737408 22307368960 10914942976
+Swap:              0           0           0

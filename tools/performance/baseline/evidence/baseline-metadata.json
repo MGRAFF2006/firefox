@@ -1,0 +1,215 @@
+{
+  "checkout_revision": "6181e6b5f28a8fbae1d5c3ef6f6626b5a2180213",
+  "source_diff": "",
+  "host": {
+    "system": "Linux",
+    "node": "homelab-dev",
+    "release": "6.12.111+deb13-cloud-amd64",
+    "version": "#1 SMP PREEMPT_DYNAMIC Debian 6.12.111-1 (2026-09-28)",
+    "machine": "x86_64",
+    "processor": ""
+  },
+  "cpu": "processor\t: 0\nvendor_id\t: GenuineIntel\ncpu family\t: 6\nmodel\t\t: 63\nmodel name\t: Intel(R) Xeon(R) CPU E5-1650 v3 @ 3.50GHz\nstepping\t: 2\nmicrocode\t: 0x49\ncpu MHz\t\t: 3491.912\ncache size\t: 16384 KB\nphysical id\t: 0\nsiblings\t: 6\ncore id\t\t: 0\ncpu cores\t: 6\napicid\t\t: 0\ninitial apicid\t: 0\nfpu\t\t: yes\nfpu_exception\t: yes\ncpuid level\t: 15\nwp\t\t: yes\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ss ht syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon rep_good nopl xtopology cpuid tsc_known_freq pni pclmulqdq vmx ssse3 fma cx16 pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm abm cpuid_fault pti ssbd ibrs ibpb stibp tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid xsaveopt arat vnmi umip md_clear flush_l1d arch_capabilities\nvmx flags\t: vnmi preemption_timer posted_intr invvpid ept_x_only ept_ad ept_1gb flexpriority apicv tsc_offset vtpr mtf vapic ept vpid unrestricted_guest vapic_reg vid shadow_vmcs pml\nbugs\t\t: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs mmio_stale_data bhi ibpb_no_ret\nbogomips\t: 6983.82\nclflush size\t: 64\ncache_alignment\t: 64\naddress sizes\t: 46 bits physical, 48 bits virtual\npower management:\n\nprocessor\t: 1\nvendor_id\t: GenuineIntel\ncpu family\t: 6\nmodel\t\t: 63\nmodel name\t: Intel(R) Xeon(R) CPU E5-1650 v3 @ 3.50GHz\nstepping\t: 2\nmicrocode\t: 0x49\ncpu MHz\t\t: 3491.912\ncache size\t: 16384 KB\nphysical id\t: 0\nsiblings\t: 6\ncore id\t\t: 1\ncpu cores\t: 6\napicid\t\t: 1\ninitial apicid\t: 1\nfpu\t\t: yes\nfpu_exception\t: yes\ncpuid level\t: 15\nwp\t\t: yes\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ss ht syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon rep_good nopl xtopology cpuid tsc_known_freq pni pclmulqdq vmx ssse3 fma cx16 pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm abm cpuid_fault pti ssbd ibrs ibpb stibp tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid xsaveopt arat vnmi umip md_clear flush_l1d arch_capabilities\nvmx flags\t: vnmi preemption_timer posted_intr invvpid ept_x_only ept_ad ept_1gb flexpriority apicv tsc_offset vtpr mtf vapic ept vpid unrestricted_guest vapic_reg vid shadow_vmcs pml\nbugs\t\t: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs mmio_stale_data bhi ibpb_no_ret\nbogomips\t: 6983.82\nclflush size\t: 64\ncache_alignment\t: 64\naddress sizes\t: 46 bits physical, 48 bits virtual\npower management:\n\nprocessor\t: 2\nvendor_id\t: GenuineIntel\ncpu family\t: 6\nmodel\t\t: 63\nmodel name\t: Intel(R) Xeon(R) CPU E5-1650 v3 @ 3.50GHz\nstepping\t: 2\nmicrocode\t: 0x49\ncpu MHz\t\t: 3491.912\ncache size\t: 16384 KB\nphysical id\t: 0\nsiblings\t: 6\ncore id\t\t: 2\ncpu cores\t: 6\napicid\t\t: 2\ninitial apicid\t: 2\nfpu\t\t: yes\nfpu_exception\t: yes\ncpuid level\t: 15\nwp\t\t: yes\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ss ht syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon rep_good nopl xtopology cpuid tsc_known_freq pni pclmulqdq vmx ssse3 fma cx16 pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm abm cpuid_fault pti ssbd ibrs ibpb stibp tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid xsaveopt arat vnmi umip md_clear flush_l1d arch_capabilities\nvmx flags\t: vnmi preemption_timer posted_intr invvpid ept_x_only ept_ad ept_1gb flexpriority apicv tsc_offset vtpr mtf vapic ept vpid unrestricted_guest vapic_reg vid shadow_vmcs pml\nbugs\t\t: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs mmio_stale_data bhi ibpb_no_ret\nbogomips\t: 6983.82\nclflush size\t: 64\ncache_alignment\t: 64\naddress sizes\t: 46 bits physical, 48 bits virtual\npower management:\n\nprocessor\t: 3\nvendor_id\t: GenuineIntel\ncpu family\t: 6\nmodel\t\t: 63\nmodel name\t: Intel(R) Xeon(R) CPU E5-1650 v3 @ 3.50GHz\nstepping\t: 2\nmicrocode\t: 0x49\ncpu MHz\t\t: 3491.912\ncache size\t: 16384 KB\nphysical id\t: 0\nsiblings\t: 6\ncore id\t\t: 3\ncpu cores\t: 6\napicid\t\t: 3\ninitial apicid\t: 3\nfpu\t\t: yes\nfpu_exception\t: yes\ncpuid level\t: 15\nwp\t\t: yes\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ss ht syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon rep_good nopl xtopology cpuid tsc_known_freq pni pclmulqdq vmx ssse3 fma cx16 pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm abm cpuid_fault pti ssbd ibrs ibpb stibp tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid xsaveopt arat vnmi umip md_clear flush_l1d arch_capabilities\nvmx flags\t: vnmi preemption_timer posted_intr invvpid ept_x_only ept_ad ept_1gb flexpriority apicv tsc_offset vtpr mtf vapic ept vpid unrestricted_guest vapic_reg vid shadow_vmcs pml\nbugs\t\t: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs mmio_stale_data bhi ibpb_no_ret\nbogomips\t: 6983.82\nclflush size\t: 64\ncache_alignment\t: 64\naddress sizes\t: 46 bits physical, 48 bits virtual\npower management:\n\nprocessor\t: 4\nvendor_id\t: GenuineIntel\ncpu family\t: 6\nmodel\t\t: 63\nmodel name\t: Intel(R) Xeon(R) CPU E5-1650 v3 @ 3.50GHz\nstepping\t: 2\nmicrocode\t: 0x49\ncpu MHz\t\t: 3491.912\ncache size\t: 16384 KB\nphysical id\t: 0\nsiblings\t: 6\ncore id\t\t: 4\ncpu cores\t: 6\napicid\t\t: 4\ninitial apicid\t: 4\nfpu\t\t: yes\nfpu_exception\t: yes\ncpuid level\t: 15\nwp\t\t: yes\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ss ht syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon rep_good nopl xtopology cpuid tsc_known_freq pni pclmulqdq vmx ssse3 fma cx16 pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm abm cpuid_fault pti ssbd ibrs ibpb stibp tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid xsaveopt arat vnmi umip md_clear flush_l1d arch_capabilities\nvmx flags\t: vnmi preemption_timer posted_intr invvpid ept_x_only ept_ad ept_1gb flexpriority apicv tsc_offset vtpr mtf vapic ept vpid unrestricted_guest vapic_reg vid shadow_vmcs pml\nbugs\t\t: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs mmio_stale_data bhi ibpb_no_ret\nbogomips\t: 6983.82\nclflush size\t: 64\ncache_alignment\t: 64\naddress sizes\t: 46 bits physical, 48 bits virtual\npower management:\n\nprocessor\t: 5\nvendor_id\t: GenuineIntel\ncpu family\t: 6\nmodel\t\t: 63\nmodel name\t: Intel(R) Xeon(R) CPU E5-1650 v3 @ 3.50GHz\nstepping\t: 2\nmicrocode\t: 0x49\ncpu MHz\t\t: 3491.912\ncache size\t: 16384 KB\nphysical id\t: 0\nsiblings\t: 6\ncore id\t\t: 5\ncpu cores\t: 6\napicid\t\t: 5\ninitial apicid\t: 5\nfpu\t\t: yes\nfpu_exception\t: yes\ncpuid level\t: 15\nwp\t\t: yes\nflags\t\t: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ss ht syscall nx pdpe1gb rdtscp lm constant_tsc arch_perfmon rep_good nopl xtopology cpuid tsc_known_freq pni pclmulqdq vmx ssse3 fma cx16 pdcm pcid sse4_1 sse4_2 x2apic movbe popcnt tsc_deadline_timer aes xsave avx f16c rdrand hypervisor lahf_lm abm cpuid_fault pti ssbd ibrs ibpb stibp tpr_shadow flexpriority ept vpid ept_ad fsgsbase tsc_adjust bmi1 avx2 smep bmi2 erms invpcid xsaveopt arat vnmi umip md_clear flush_l1d arch_capabilities\nvmx flags\t: vnmi preemption_timer posted_intr invvpid ept_x_only ept_ad ept_1gb flexpriority apicv tsc_offset vtpr mtf vapic ept vpid unrestricted_guest vapic_reg vid shadow_vmcs pml\nbugs\t\t: cpu_meltdown spectre_v1 spectre_v2 spec_store_bypass l1tf mds swapgs mmio_stale_data bhi ibpb_no_ret\nbogomips\t: 6983.82\nclflush size\t: 64\ncache_alignment\t: 64\naddress sizes\t: 46 bits physical, 48 bits virtual\npower management:\n\n",
+  "manifest_sha256": "5893382f2659aeca7d06435875aa403632d1680b463f0b68ab8fd76a48a14e2d",
+  "benchmark": {
+    "package.json": "{\n    \"name\": \"speedometer\",\n    \"version\": \"3.0.0-alpha\",\n    \"description\": \"An open source repository for the Speedometer benchmark.\",\n    \"engines\": {\n        \"node\": \">=18.13.0\",\n        \"npm\": \">=8.19.3\"\n    },\n    \"repository\": {\n        \"type\": \"git\",\n        \"url\": \"git+https://github.com/WebKit/Speedometer.git\"\n    },\n    \"bugs\": {\n        \"url\": \"https://github.com/WebKit/Speedometer/issues\"\n    },\n    \"license\": \"SEE LICENSE IN LICENSE\",\n    \"scripts\": {\n        \"dev\": \"http-server ./ -p 8080 -c-1 --cors\",\n        \"server\": \"http-server ./ -p 8080 --cors\",\n        \"lint:check\": \"eslint **/*.{js,mjs,jsx,ts,tsx}\",\n        \"lint:fix\": \"eslint \\\"**/*.{js,mjs,jsx,ts,tsx}\\\" --fix\",\n        \"pretty:check\": \"prettier --check ./\",\n        \"pretty:fix\": \"prettier --write ./\",\n        \"format\": \"npm run pretty:fix && npm run lint:fix\",\n        \"test:chrome\": \"node tests/run.mjs --browser chrome\",\n        \"test:firefox\": \"node tests/run.mjs --browser firefox\",\n        \"test:safari\": \"node tests/run.mjs --browser safari\",\n        \"test:edge\": \"node tests/run.mjs --browser edge\"\n    },\n    \"devDependencies\": {\n        \"@babel/core\": \"^7.21.3\",\n        \"@babel/eslint-parser\": \"^7.21.3\",\n        \"@babel/plugin-proposal-decorators\": \"^7.21.0\",\n        \"@nuxt/eslint-config\": \"^0.1.1\",\n        \"@next/eslint-plugin-next\": \"^13.4.5\",\n        \"@typescript-eslint/eslint-plugin\": \"^5.59.0\",\n        \"@typescript-eslint/parser\": \"^5.59.0\",\n        \"command-line-args\": \"^5.2.1\",\n        \"command-line-usage\": \"^6.1.3\",\n        \"eslint\": \"^8.38.0\",\n        \"eslint-plugin-ember\": \"^11.4.8\",\n        \"eslint-plugin-react\": \"^7.32.2\",\n        \"eslint-plugin-vue\": \"^9.10.0\",\n        \"expect.js\": \"^0.3.1\",\n        \"http-server\": \"^14.1.1\",\n        \"mocha\": \"^10.2.0\",\n        \"prettier\": \"^2.8.3\",\n        \"selenium-webdriver\": \"^4.8.0\",\n        \"sinon\": \"^15.0.1\",\n        \"typescript\": \"^5.0.4\"\n    }\n}\n",
+    "moz.yaml": "schema: 1\n\nbugzilla:\n  product: \"Firefox Build System\"\n  component: \"General\"\n\norigin:\n  name: speedometer3-benchmark\n  description: An open source repository for the Speedometer benchmark, v3\n\n  url: https://github.com/WebKit/Speedometer\n\n  release: 1386415be8fef2f6b6bbdbe1828872471c5d802a (2025-03-11T16:16:00Z).\n  revision: 1386415be8fef2f6b6bbdbe1828872471c5d802a\n\n  license: BSD-2-Clause\n\nvendoring:\n  url: https://github.com/WebKit/Speedometer\n  source-hosting: github\n  tracking: commit\n\n  exclude:\n    - '.*'\n\n  keep:\n    - LICENSE\n"
+  },
+  "mozconfig": "mk_add_options MOZ_OBJDIR=\"${FIREFOX_BASELINE_ROOT:?Set FIREFOX_BASELINE_ROOT}/obj-release\"\nmk_add_options MOZ_MAKE_FLAGS=\"-j4\"\nexport RUSTC=\"${FIREFOX_BASELINE_ROOT}/state/rustc/bin/rustc\"\nexport CARGO=\"${FIREFOX_BASELINE_ROOT}/state/rustc/bin/cargo\"\nexport CARGO_HOME=\"${FIREFOX_BASELINE_ROOT}/cargo\"\nac_add_options --enable-release\nac_add_options --enable-optimize\nac_add_options --enable-lto=cross,thin\nac_add_options --enable-rust-simd\nac_add_options --enable-default-toolkit=cairo-gtk3-x11-wayland\n",
+  "rounds": 5,
+  "profile_only": false,
+  "browsers": {
+    "chromium": {
+      "path": "/usr/lib/chromium/chromium",
+      "version": "Chromium 156.0.8078.79",
+      "sha256": "ce1ff960ce428a4a88b1b1c38516bdf1954a57fc24036161b7a0d8d0f8aec511",
+      "file_identity": [
+        2049,
+        296239,
+        331234136,
+        1793591502000000000
+      ],
+      "chrome-sandbox": {
+        "sha256": "df25de1a557f1d038387c6ac8d1937490074121b59c809af07a50a7ba382e336"
+      }
+    },
+    "official-firefox": {
+      "path": "/srv/development/build/firefox-perf/official/firefox/firefox",
+      "version": "Mozilla Firefox 159.0.1",
+      "sha256": "de3f1f70c111692fce304c7af83a7bf2e6f4bc8033191ea8b8ccc25f1aa122ed",
+      "file_identity": [
+        2064,
+        5394888,
+        5520,
+        1793636772000000000
+      ],
+      "firefox-bin": {
+        "sha256": "5c848235a91070c76acd553fb26b423492c40b1e4187ed39826e57de2c33e647"
+      },
+      "libxul.so": {
+        "sha256": "f7696310e0944af87ea9d869422196a993019614d7b32837e6c915d76ad372b0"
+      },
+      "application.ini": {
+        "sha256": "5fb546c7b685990fea54673914fbd367fb38eedf67e1e2061b1e4a3b0b13bc41",
+        "content": "; This file is not used. If you modify it and want the application to use\n; your modifications, move it under the browser/ subdirectory and start with\n; the \"-app /path/to/browser/application.ini\" argument.\n[App]\nVendor=Mozilla\nName=Firefox\nRemotingName=firefox\nVersion=159.0.1\nBuildID=20261102144711\nSourceRepository=https://hg.mozilla.org/releases/mozilla-release\nSourceStamp=7b34a03a910d0385299f4a9f27aa585a786862d8\nID={ec8030f7-c20a-464f-9b0e-13a3a9e97384}\n\n[Gecko]\nMinVersion=159.0.1\nMaxVersion=159.0.1\n\n[XRE]\nEnableProfileMigrator=1\n\n[Crash Reporter]\nEnabled=1\nServerURL=https://crash-reports.mozilla.com/submit?id={ec8030f7-c20a-464f-9b0e-13a3a9e97384}&version=159.0.1&buildid=20261102144711\n\n[AppUpdate]\nURL=https://aus5.mozilla.org/update/6/%PRODUCT%/%VERSION%/%BUILD_ID%/%BUILD_TARGET%/%LOCALE%/%CHANNEL%/%OS_VERSION%/%SYSTEM_CAPABILITIES%/%DISTRIBUTION%/%DISTRIBUTION_VERSION%/update.xml\n"
+      },
+      "platform.ini": {
+        "sha256": "6aa726bb15016e374ee22a0a14af43fc42366c9ea946f4d3ff5b517780053ed5",
+        "content": "[Build]\nBuildID=20261102144711\nMilestone=159.0.1\nSourceRepository=https://hg.mozilla.org/releases/mozilla-release\nSourceStamp=7b34a03a910d0385299f4a9f27aa585a786862d8\n"
+      }
+    },
+    "source-firefox": {
+      "path": "/srv/development/build/firefox-perf/binaries/source-stock-6181e6b5/firefox/firefox",
+      "version": "Mozilla Firefox 159.0.1",
+      "sha256": "c3b28015d5ac8d894ea95cb897c90fb2c944b9c159ee7cf66e5260124ca0b414",
+      "file_identity": [
+        2064,
+        5417072,
+        531880,
+        1794182386000000000
+      ],
+      "firefox-bin": {
+        "sha256": "c3b28015d5ac8d894ea95cb897c90fb2c944b9c159ee7cf66e5260124ca0b414"
+      },
+      "libxul.so": {
+        "sha256": "54063bdc4f55e5d671731166c60be5d96de8883d286058283fbdf00b626f887d"
+      },
+      "application.ini": {
+        "sha256": "f45feab88a4a06c6ed494ff2f3977e627063548499440435d89ff7543f40c52a",
+        "content": "; This file is not used. If you modify it and want the application to use\n; your modifications, move it under the browser/ subdirectory and start with\n; the \"-app /path/to/browser/application.ini\" argument.\n[App]\nVendor=Mozilla\nName=Firefox\nRemotingName=firefox-default\nCodeName=Nightly\nVersion=159.0.1\nBuildID=20261109005556\nID={ec8030f7-c20a-464f-9b0e-13a3a9e97384}\n\n[Gecko]\nMinVersion=159.0.1\nMaxVersion=159.0.1\n\n[XRE]\nEnableProfileMigrator=1\n\n[Crash Reporter]\nEnabled=1\nServerURL=https://crash-reports.mozilla.com/submit?id={ec8030f7-c20a-464f-9b0e-13a3a9e97384}&version=159.0.1&buildid=20261109005556\n\n[AppUpdate]\nURL=https://aus5.mozilla.org/update/6/%PRODUCT%/%VERSION%/%BUILD_ID%/%BUILD_TARGET%/%LOCALE%/%CHANNEL%/%OS_VERSION%/%SYSTEM_CAPABILITIES%/%DISTRIBUTION%/%DISTRIBUTION_VERSION%/update.xml\n"
+      },
+      "platform.ini": {
+        "sha256": "0d52138194105a19be1c8f2ef8d9d4703a5241e24974cac34aa7fbab27bbe83e",
+        "content": "[Build]\nBuildID=20261109005556\nMilestone=159.0.1\n"
+      },
+      "source_revision_external": "6181e6b5f28a8fbae1d5c3ef6f6626b5a2180213"
+    }
+  },
+  "chromedriver": "ChromeDriver 156.0.8078.79 (a21ce95c24ce3964416f09ae1862f53f319eb4d0-refs/branch-heads/8078@{#1704})",
+  "geckodriver": "geckodriver 0.36.0 (a3d508507022 2025-02-24 15:57 +0000)\n\nThe source code of this program is available from\ntesting/geckodriver in https://hg.mozilla.org/mozilla-central.\n\nThis program is subject to the terms of the Mozilla Public License 2.0.\nYou can obtain a copy of the license at https://mozilla.org/MPL/2.0/.",
+  "toolchain": {
+    "clang": "clang version 22.1.8 (taskcluster-DJ6RlTa5TG6OiUY8zGIvvw)\nTarget: x86_64-unknown-linux-gnu\nThread model: posix\nInstalledDir: /srv/development/build/firefox-perf/state/clang/bin",
+    "rustc": "rustc 1.95.0 (59807616e 2026-04-14)",
+    "cargo": "cargo 1.95.0 (f2d3ce0bd 2026-03-21)",
+    "node": "v22.16.0"
+  },
+  "harness_sha256": {
+    "run.py": "181b80ce6b0a26222c4b8b1e522886cfb83e29c92da159da56ced281ebd0e267",
+    "mozconfig": "8dc755410532f3d7a614eb4150c0f6712ff902098a326fd1b6d071074091001a",
+    "smoke.cjs": "02fd8babf34c240ed6b84b41139fda048f1753a512ed1631aa47a384fe11b77d",
+    "build.sh": "4684a2d508173db4ba348a017664d3d9287e42d5b834eed0fab6e4ba8f32c47d",
+    "preserve.sh": "44e262078a20c84da5a3c8a3d37bf04fe61a4b1943ed444f9fd78e2dc9046db4",
+    "summarize.py": "5fb26e695b571b759a24942ea105e7403e8a8efcc31aba3567d1d6623b6dfaf4"
+  },
+  "browsertime_package": {
+    "name": "browsertime",
+    "description": "Get performance metrics from your web page using Browsertime.",
+    "version": "26.3.1",
+    "bin": "./bin/browsertime.js",
+    "type": "module",
+    "types": "./types/scripting.d.ts",
+    "dependencies": {
+      "@devicefarmer/adbkit": "3.3.8",
+      "@sitespeed.io/chromedriver": "143.0.7499",
+      "@sitespeed.io/edgedriver": "143.0.3650",
+      "@sitespeed.io/geckodriver": "0.36.0",
+      "@sitespeed.io/log": "1.0.0",
+      "@sitespeed.io/throttle": "5.0.1",
+      "@sitespeed.io/tracium": "0.3.3",
+      "chrome-har": "1.1.1",
+      "chrome-remote-interface": "0.33.3",
+      "execa": "9.6.0",
+      "fast-stats": "0.0.7",
+      "ff-test-bidi-har-export": "0.0.18",
+      "lodash.merge": "4.6.2",
+      "selenium-webdriver": "4.39.0",
+      "yargs": "18.0.0"
+    },
+    "optionalDependencies": {
+      "jimp": "1.6.0",
+      "usb-power-profiling": "1.6.0"
+    },
+    "devDependencies": {
+      "@types/selenium-webdriver": "4.35.1",
+      "ava": "6.4.1",
+      "clean-jsdoc-theme": "4.3.0",
+      "eslint": "9.37.0",
+      "eslint-config-prettier": "10.1.8",
+      "eslint-plugin-prettier": "5.5.4",
+      "eslint-plugin-unicorn": "61.0.2",
+      "jsdoc": "4.0.5",
+      "prettier": "3.6.2",
+      "serve": "14.2.5",
+      "serve-handler": "6.1.6",
+      "typescript": "5.9.3"
+    },
+    "engines": {
+      "node": ">=20.0.0"
+    },
+    "files": [
+      "CHANGELOG.md",
+      "CONTRIBUTING.md",
+      "LICENSE",
+      "README.md",
+      "bin",
+      "browserscripts",
+      "browsersupport",
+      "visualmetrics/visualmetrics-portable.py",
+      "browsertime.png",
+      "index.js",
+      "lib",
+      "package.json",
+      "vendor",
+      "types"
+    ],
+    "exports": {
+      ".": {
+        "import": "./index.js",
+        "types": "./types/scripting.d.ts"
+      }
+    },
+    "scripts": {
+      "test": "ava",
+      "start-server": "serve test/data/html/",
+      "stop-server": "sudo pkill serve",
+      "lint": "eslint .",
+      "lint:fix": "eslint . --fix",
+      "tsc": "tsc",
+      "jsdoc": "jsdoc --configure jsdoc/jsdoc.json",
+      "prepublishOnly": "npm run lint && npm run tsc"
+    },
+    "author": "Peter Hedenskog",
+    "contributors": [
+      {
+        "name": "Gregory Mierzwinski"
+      },
+      {
+        "name": "Tobias Lidskog"
+      },
+      {
+        "name": "Jonathan Lee"
+      }
+    ],
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/sitespeedio/browsertime.git"
+    },
+    "homepage": "https://www.sitespeed.io/documentation/browsertime/",
+    "license": "MIT",
+    "ava": {
+      "files": [
+        "test/**/*",
+        "!test/util",
+        "!test/data"
+      ],
+      "concurrency": 1,
+      "failFast": true,
+      "require": [
+        "./test/util/setup.js"
+      ],
+      "nodeArguments": [
+        "--trace-deprecation"
+      ]
+    }
+  }
+}

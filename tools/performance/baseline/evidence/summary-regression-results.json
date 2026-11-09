@@ -1,0 +1,32 @@
+{
+  "real_five_round_layout_with_harness_snapshot": {
+    "passed": true,
+    "exit_code": 0,
+    "error": ""
+  },
+  "reject_profile": {
+    "passed": true,
+    "exit_code": 1,
+    "error": "Profiles cannot be included in comparison scores"
+  },
+  "reject_under_five_rounds": {
+    "passed": true,
+    "exit_code": 1,
+    "error": "At least five independent paired rounds are required"
+  },
+  "reject_swap_io": {
+    "passed": true,
+    "exit_code": 1,
+    "error": "Swap I/O contaminated run: /srv/development/build/firefox-perf/tmp/summary-regression-29c77oih/01-chromium"
+  },
+  "reject_binary_change": {
+    "passed": true,
+    "exit_code": 1,
+    "error": "Browser changed during run: /srv/development/build/firefox-perf/tmp/summary-regression-29c77oih/01-chromium"
+  },
+  "reject_missing_round": {
+    "passed": true,
+    "exit_code": 1,
+    "error": "Incomplete paired rounds"
+  }
+}

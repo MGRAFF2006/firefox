@@ -1,0 +1,27 @@
+{
+  "baseline_suites": 15,
+  "baseline_rounds": 5,
+  "baseline_failures": 0,
+  "baseline_swap_io_pages": 0,
+  "baseline_binary_changes": 0,
+  "source_package_exit_code": 0,
+  "source_smoke": "passed",
+  "official_smoke": "passed",
+  "summary_unittest_methods_passed": 4,
+  "summary_real_cohort_guard_cases_passed": 6,
+  "preservation_guard_fixture_cases_passed": 2,
+  "published_archive_summary_reproduction": "exact match",
+  "archive_session_credential_pattern_scan": "clear; expected filter literal Using env: in snapshotted runner source permitted; private initial setup log excluded",
+  "focused_mach_linters": [
+    "ruff",
+    "ruff-format",
+    "shellcheck",
+    "file-whitespace",
+    "license",
+    "file-perm"
+  ],
+  "focused_mach_lint_result": "passed; zero problems",
+  "github_actions_enabled": false,
+  "github_ci_checks": "none; local checks are not CI",
+  "independent_final_head_review": "pending; no merge performed"
+}

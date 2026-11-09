@@ -1,0 +1,38 @@
+{
+  "source_revision": "6181e6b5f28a8fbae1d5c3ef6f6626b5a2180213",
+  "mozconfig_sha256": "8dc755410532f3d7a614eb4150c0f6712ff902098a326fd1b6d071074091001a",
+  "preserved_runtime": "/srv/development/build/firefox-perf/binaries/source-stock-6181e6b5/firefox/firefox",
+  "preserved_symbols": "/srv/development/build/firefox-perf/binaries/source-stock-6181e6b5/symbols",
+  "native_mach_result": "success; final log says build finally finished successfully",
+  "wrapper_exit_code": 2,
+  "wrapper_failure": "Bash resumed a changed build.sh after mach returned and encountered EOF. Final wrapper uses exec; isolated fake-mach propagation tests passed for exit0 and7. Native build was not rerun to conceal wrapper failure.",
+  "build_log": "/srv/development/build/firefox-perf/build-pinned-j4.log",
+  "build_log_sha256": "fa3af8a3befbf39f03094a01a7e499a4ca2da798148a27ac2d2824544bae655d",
+  "final_j4_invocation_wall_seconds": 6395,
+  "cold_full_build_timing": false,
+  "timing_note": "final j4 invocation reused objects from earlier j2/j3 attempts",
+  "libxul_sharedlib_task_seconds": 1136.420676,
+  "observed_link_rss_approx_gib": 15,
+  "objdir_size_after_build_approx_gib": 20,
+  "sccache": {
+    "version": "0.18.0",
+    "installed": true,
+    "enabled": false
+  },
+  "pgo": false,
+  "lto": "cross-language ThinLTO",
+  "package_exit": 0,
+  "temporary_build_swap": {
+    "path": "/srv/development/build/firefox-perf/build.swap",
+    "size_gib": 16,
+    "cleanup_exit": 0,
+    "active_after_cleanup": false,
+    "file_removed_after_inactive": true,
+    "measurement_swap_io_pages": 0
+  },
+  "github_actions": {
+    "enabled": false,
+    "reason": "inherited upstream PR handler closes/locks non-Lando members; parent applied reversible fork-only setting",
+    "github_ci_checks": "none; local checks are not CI"
+  }
+}

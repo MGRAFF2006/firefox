@@ -1,0 +1,138 @@
+{
+  "type": "thread-markers",
+  "threadHandle": "t-0",
+  "friendlyThreadName": "",
+  "totalMarkerCount": 325269,
+  "filteredMarkerCount": 2,
+  "filters": {
+    "searchString": "libxul.so"
+  },
+  "byType": [
+    {
+      "markerName": "SharedLib",
+      "count": 1,
+      "isInterval": true,
+      "durationStats": {
+        "min": 1136420.676,
+        "max": 1136420.676,
+        "avg": 1136420.676,
+        "median": 1136420.676,
+        "p95": 1136420.676,
+        "p99": 1136420.676
+      },
+      "rateStats": {
+        "markersPerSecond": 0,
+        "minGap": 0,
+        "avgGap": 0,
+        "maxGap": 0
+      },
+      "topMarkers": [
+        {
+          "handle": "m-1",
+          "label": "../../../dist/bin/libxul.so",
+          "start": 5219752.772,
+          "duration": 1136420.676,
+          "hasStack": false
+        }
+      ]
+    },
+    {
+      "markerName": "check_binary",
+      "count": 1,
+      "isInterval": true,
+      "durationStats": {
+        "min": 310.9339999994263,
+        "max": 310.9339999994263,
+        "avg": 310.9339999994263,
+        "median": 310.9339999994263,
+        "p95": 310.9339999994263,
+        "p99": 310.9339999994263
+      },
+      "rateStats": {
+        "markersPerSecond": 0,
+        "minGap": 0,
+        "avgGap": 0,
+        "maxGap": 0
+      },
+      "topMarkers": [
+        {
+          "handle": "m-2",
+          "label": "../../../dist/bin/libxul.so",
+          "start": 6355859.626,
+          "duration": 310.9339999994263,
+          "hasStack": false
+        }
+      ]
+    }
+  ],
+  "byCategory": [
+    {
+      "categoryName": "Tasks",
+      "categoryIndex": 2,
+      "count": 2,
+      "percentage": 100
+    }
+  ],
+  "flatMarkers": [
+    {
+      "handle": "m-1",
+      "name": "SharedLib",
+      "label": "../../../dist/bin/libxul.so",
+      "start": 5219752.772,
+      "duration": 1136420.676,
+      "hasStack": false,
+      "category": "Tasks",
+      "markerType": "Text",
+      "fields": [
+        {
+          "key": "text",
+          "label": "Description",
+          "value": "../../../dist/bin/libxul.so",
+          "formattedValue": "../../../dist/bin/libxul.so"
+        }
+      ],
+      "data": {
+        "text": "../../../dist/bin/libxul.so"
+      }
+    },
+    {
+      "handle": "m-2",
+      "name": "check_binary",
+      "label": "../../../dist/bin/libxul.so",
+      "start": 6355859.626,
+      "duration": 310.9339999994263,
+      "hasStack": false,
+      "category": "Tasks",
+      "markerType": "Text",
+      "fields": [
+        {
+          "key": "text",
+          "label": "Description",
+          "value": "../../../dist/bin/libxul.so",
+          "formattedValue": "../../../dist/bin/libxul.so"
+        }
+      ],
+      "data": {
+        "text": "../../../dist/bin/libxul.so"
+      }
+    }
+  ],
+  "context": {
+    "selectedThreadHandle": "t-0",
+    "selectedThreads": [
+      {
+        "threadIndex": 0,
+        "name": "",
+        "processName": "mach"
+      }
+    ],
+    "resultThreadHandle": null,
+    "resultThreads": [],
+    "currentViewRange": null,
+    "rootRange": {
+      "start": 0,
+      "end": 6399858.537
+    },
+    "callTreeSummaryStrategy": "timing"
+  }
+}

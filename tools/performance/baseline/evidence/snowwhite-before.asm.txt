@@ -1,0 +1,41 @@
+
+/srv/development/build/firefox-perf/binaries/source-stock-6181e6b5/symbols/libxul.so:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000003d63530 <SnowWhiteKiller::Visit(nsPurpleBuffer&, nsPurpleBufferEntry*)>:
+ 3d63530:	55                   	push   %rbp
+ 3d63531:	41 57                	push   %r15
+ 3d63533:	41 56                	push   %r14
+ 3d63535:	41 55                	push   %r13
+ 3d63537:	41 54                	push   %r12
+ 3d63539:	53                   	push   %rbx
+ 3d6353a:	48 83 ec 18          	sub    $0x18,%rsp
+ 3d6353e:	49 89 d4             	mov    %rdx,%r12
+ 3d63541:	49 89 f5             	mov    %rsi,%r13
+ 3d63544:	48 89 fb             	mov    %rdi,%rbx
+ 3d63547:	64 48 8b 04 25 28 00 	mov    %fs:0x28,%rax
+ 3d6354e:	00 00
+ 3d63550:	48 89 44 24 10       	mov    %rax,0x10(%rsp)
+ 3d63555:	48 8b 7f 28          	mov    0x28(%rdi),%rdi
+ 3d63559:	48 85 ff             	test   %rdi,%rdi
+ 3d6355c:	74 2b                	je     3d63589 <SnowWhiteKiller::Visit(nsPurpleBuffer&, nsPurpleBufferEntry*)+0x59>
+ 3d6355e:	48 8b 07             	mov    (%rdi),%rax
+ 3d63561:	48 85 c0             	test   %rax,%rax
+ 3d63564:	7f 1d                	jg     3d63583 <SnowWhiteKiller::Visit(nsPurpleBuffer&, nsPurpleBufferEntry*)+0x53>
+ 3d63566:	80 7f 2b 00          	cmpb   $0x0,0x2b(%rdi)
+ 3d6356a:	75 17                	jne    3d63583 <SnowWhiteKiller::Visit(nsPurpleBuffer&, nsPurpleBufferEntry*)+0x53>
+ 3d6356c:	e8 5f c9 36 04       	call   80cfed0 <JS::SliceBudget::checkOverBudget()>
+ 3d63571:	84 c0                	test   %al,%al
+ 3d63573:	74 07                	je     3d6357c <SnowWhiteKiller::Visit(nsPurpleBuffer&, nsPurpleBufferEntry*)+0x4c>
+ 3d63575:	31 ed                	xor    %ebp,%ebp
+ 3d63577:	e9 af 01 00 00       	jmp    3d6372b <SnowWhiteKiller::Visit(nsPurpleBuffer&, nsPurpleBufferEntry*)+0x1fb>
+ 3d6357c:	48 8b 7b 28          	mov    0x28(%rbx),%rdi
+ 3d63580:	48 8b 07             	mov    (%rdi),%rax
+ 3d63583:	48 ff c8             	dec    %rax
+ 3d63586:	48 89 07             	mov    %rax,(%rdi)
+ 3d63589:	49 8b 44 24 08       	mov    0x8(%r12),%rax
+ 3d6358e:	40 b5 01             	mov    $0x1,%bpl
+ 3d63591:	48 83 38 07          	cmpq   $0x7,(%rax)
+ 3d63595:	0f 87 90 01 00 00    	ja     3d6372b <SnowWhiteKiller::Visit(nsPurpleBuffer&, nsPurpleBufferEntry*)+0x1fb>
