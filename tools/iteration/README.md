@@ -232,3 +232,10 @@ The injected exception replaces one sleep after the fixture becomes ready.
 `--lifecycle-case nested-failure --runner OLD_RUNNER` reproduces the old leak.
 These checks do not verify real Git fingerprint generation, kernel D-state,
 SIGKILL/host-loss recovery, browsers, compilers or training workloads.
+
+Exited-process pidfds are retired before each discovery pass, including cleanup
+retries. A sequential build must not accumulate one descriptor per finished
+subprocess. `--lifecycle-case fd-churn` runs 60 short children under a per-launcher
+40-descriptor limit; `fd-recovery` additionally seeds exited-process handles and
+injects discovery exhaustion during cleanup. Both require completion evidence
+and lock release. These are fixture limits, not changes to host limits.

@@ -17,7 +17,7 @@ import time
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--source', type=Path, required=True)
 parser.add_argument('--runner', type=Path, default=Path(__file__).with_name('run.py'))
-parser.add_argument('--lifecycle-case', choices=('probe', 'failure', 'nested-probe', 'nested-failure', 'nested-term', 'nested-error'))
+parser.add_argument('--lifecycle-case', choices=('probe', 'failure', 'nested-probe', 'nested-failure', 'nested-term', 'nested-error', 'fd-churn', 'fd-recovery'))
 args = parser.parse_args()
 source = args.source.resolve()
 runner = args.runner.resolve()
@@ -38,6 +38,72 @@ def assert_gone(pid):
     except ProcessLookupError:
         return
     raise AssertionError(f'Owned process {pid} survived launcher exit')
+
+
+def descriptor_regression(root, base, case):
+    fixture = root / case
+    fixture.mkdir()
+    wrapper = fixture / 'launcher.py'
+    original_wrapper = Path(base[1]).read_text()
+    setup = 'import resource\nresource.setrlimit(resource.RLIMIT_NOFILE,(40,40))\n'
+    if case == 'fd-recovery':
+        setup += (
+            'import errno,os\n'
+            'cleanup=m["ProcessSupervisor"].cleanup\n'
+            'discover=m["ProcessSupervisor"].discover\n'
+            'def pressure_cleanup(self):\n'
+            ' if self.child is not None:\n'
+            '  for unused in range(24):\n'
+            '   child=m["subprocess"].Popen(["/bin/true"])\n'
+            '   fd=os.pidfd_open(child.pid)\n'
+            '   child.wait()\n'
+            '   self.owned[child.pid]=fd\n'
+            '  self.inject_descriptor_error=True\n'
+            ' return cleanup(self)\n'
+            'def pressure_discover(self):\n'
+            ' if getattr(self,"inject_descriptor_error",False):\n'
+            '  self.inject_descriptor_error=False\n'
+            '  raise OSError(errno.EMFILE,"injected discovery exhaustion")\n'
+            ' return discover(self)\n'
+            'm["ProcessSupervisor"].cleanup=pressure_cleanup\n'
+            'm["ProcessSupervisor"].discover=pressure_discover\n')
+    wrapper.write_text(original_wrapper.replace('try: sys.exit(m["main"]())',
+                                               setup + 'try: sys.exit(m["main"]())'))
+    command = ['/bin/sh', '-c',
+               'i=0; while [ "$i" -lt 60 ]; do /bin/sleep .08; i=$((i+1)); done; echo finished']
+    process = None
+    try:
+        with (fixture / 'stdout').open('w+') as stdout, (fixture / 'stderr').open('w+') as stderr:
+            process = subprocess.Popen([base[0], str(wrapper), *base[2:], '--execute',
+                                        'check', '--', *command], stdout=stdout,
+                                       stderr=stderr, start_new_session=True)
+            try:
+                process.wait(timeout=15)
+            except subprocess.TimeoutExpired:
+                stderr.flush()
+                stderr.seek(0)
+                assert_lock_held(root)
+                print(json.dumps(dict(case=case, status='timed_out_with_lock_held',
+                                      stderr=stderr.read())), flush=True)
+                raise
+            stderr.seek(0)
+            error = stderr.read()
+            assert process.returncode == 0, (process.returncode, error)
+            stdout.seek(0)
+            output = Path(stdout.read().strip())
+            evidence = json.loads((output / 'invocation.json').read_text())
+            assert evidence['finished'] and evidence['exit_code'] == 0
+            assert (output / 'command.log').read_text().strip() == 'finished'
+            if case == 'fd-recovery':
+                assert 'injected discovery exhaustion' in error
+            with (root / 'resource.lock').open('a') as lock:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            print(json.dumps(dict(case=case, exit_code=0, children=60,
+                                  fd_limit=40, lock_after='acquired')))
+    finally:
+        if process is not None and process.poll() is None:
+            os.killpg(process.pid, signal.SIGKILL)
+            process.wait()
 
 
 def lifecycle_regression(root, base, case):
@@ -270,7 +336,10 @@ with tempfile.TemporaryDirectory(prefix='firefox-iteration-') as directory:
             tool.chmod(0o700)
     (root / 'tmp').mkdir()
     if args.lifecycle_case:
-        lifecycle_regression(root, base, args.lifecycle_case)
+        if args.lifecycle_case.startswith('fd-'):
+            descriptor_regression(root, base, args.lifecycle_case)
+        else:
+            lifecycle_regression(root, base, args.lifecycle_case)
         print('PASS lifecycle regression:', args.lifecycle_case)
         sys.exit(0)
     probe = ('import fcntl,os,pathlib; '
@@ -356,6 +425,8 @@ with tempfile.TemporaryDirectory(prefix='firefox-iteration-') as directory:
     lifecycle_regression(root, base, 'failure')
     for case in ('nested-probe', 'nested-failure', 'nested-term', 'nested-error'):
         lifecycle_regression(root, base, case)
+    for case in ('fd-churn', 'fd-recovery'):
+        descriptor_regression(root, base, case)
     assert config.read_bytes() == original
 print('PASS: plans, closed hold, malformed/config/artifact guards, lock exclusion/release, real check exit/log/time evidence, clean stable environment, launcher failure evidence, process-group cancellation/reaping, blocked-probe cancellation, failed-command descendant cleanup, unchanged source config')
 print('No Firefox compile or browser run; toolchain version/hash paths use explicit isolated fixture executables.')

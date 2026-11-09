@@ -91,7 +91,23 @@ class ProcessSupervisor:
         if self.cancelled is None:
             self.cancelled = signum
 
+    def retire_exited(self):
+        for pid, fd in list(self.owned.items()):
+            if not process_exited(fd):
+                continue
+            if self.child is not None and pid == self.child.pid:
+                self.child.poll()
+            else:
+                try:
+                    os.waitpid(pid, os.WNOHANG)
+                except ChildProcessError:
+                    pass
+            os.close(fd)
+            del self.owned[pid]
+
     def discover(self):
+        # Retire dead handles before opening procfs files or another pidfd.
+        self.retire_exited()
         # Only walk children of this dedicated launcher and pinned descendants.
         parents = [os.getpid()]
         seen = set()
@@ -159,6 +175,7 @@ class ProcessSupervisor:
             try:
                 self.signal_owned(signal.SIGKILL)
             except OSError as error:
+                self.retire_exited()
                 if not warned:
                     print(f"Cleanup discovery failed; retaining lock and retrying: {error}", file=sys.stderr)
                     warned = True
@@ -174,10 +191,7 @@ class ProcessSupervisor:
                 if pid == 0:
                     children = True
                     break
-            for pid, fd in list(self.owned.items()):
-                if process_exited(fd):
-                    os.close(fd)
-                    del self.owned[pid]
+            self.retire_exited()
             if not children and not self.owned:
                 break
             time.sleep(0.01)
