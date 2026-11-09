@@ -97,8 +97,41 @@ The harness lock prevents concurrent invocations; the runner also rejects the
 named build session. Any external workloads must be recorded and considered.
 The runner validates the identities and SHA-256 hashes of every recorded runtime
 artifact before and after each invocation, including the engine libraries and
-configuration files. Cancellation terminates the owned workload process group
-before releasing the lock; the immediate workload also inherits the lock descriptor.
+configuration files. A detached custodian owns the same resource lock and
+supervises setup probes and each Raptor invocation. It uses the reviewed
+`tools/standards/lifecycle.py` dependency pinned to accepted merge
+`c0bef74e02eee17d5df7a952269bbfb1557cb2ad`; a missing or changed dependency
+fails closed. The dependency and this caller must be deployed together in a
+complete source tree: `SOURCE` remains relative to this script's location.
+A tools-only export or an older source archive is not a replacement source tree.
+
+Cancellation and loss of the CLI cause the custodian to drain and reap owned
+descendants across worker threads, process groups and sessions before releasing
+the lock. `ROOT/scoring-custody/ID/state.json` records custody and drainage.
+Uncertain ownership retains that custodian and lock in `ownership_hold`; an outer
+monitor must not kill it merely to meet a timeout. Killing the final custodian
+or losing the host is outside this userspace guarantee. Manual recovery must
+establish actual actor absence/reaping before ending a retained custodian.
+Raptor output is held in an anonymous temporary file until drainage, then copied
+with the same environment-dump redaction into `raptor.log`; live log progress is
+therefore delayed. Round order, workload, score validation and runtime checks are
+unchanged.
+
+The harmless caller contracts use only a private temporary lock and synthetic
+workload/source fixtures, including a worker-thread fork, nested session,
+reparented descendant and unrelated sentinel. They are not browser scores:
+
+```sh
+python3 tools/performance/baseline/test_runner.py
+python3 tools/performance/baseline/lifecycle-tests/contracts.py \
+  --output /new/private/fixture-results
+```
+
+Run these under the normal bounded auxiliary admission. `contracts.py` invokes
+actual argument parsing, lock ownership, the workload loop and result handling;
+its source/runtime/version/Raptor dependencies are explicitly synthetic. The
+`--runner OLD_RUN_PY --expect-red` option reproduces the original premature-unlock
+bug. Do not point these fixtures at the production resource lock.
 
 Raw browser results, commands, versions, SHA-256 hashes, manifest hash, host details,
 load, and failures are retained under `ROOT/runs/BERLIN-TIMESTAMP` (with offset). Do not discard

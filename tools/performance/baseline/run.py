@@ -7,7 +7,6 @@
 
 import argparse
 import datetime
-import fcntl
 import hashlib
 import json
 import math
@@ -15,6 +14,9 @@ import os
 import platform
 import shutil
 import signal
+import tempfile
+import uuid
+import types
 import subprocess
 from pathlib import Path
 
@@ -23,8 +25,21 @@ from zoneinfo import ZoneInfo
 SOURCE = Path(__file__).resolve().parents[3]
 TIMEZONE = ZoneInfo("Europe/Berlin")
 
+# Reuse the reviewed repository custodian; fail closed on a missing or changed
+# dependency instead of importing a same-named module from the caller's path.
+LIFECYCLE_PATH = SOURCE / "tools/standards/lifecycle.py"
+LIFECYCLE_SHA256 = "c1854a305f633691f3991b094e7c2d5b84f3977385216212fae7d929ec346232"
+_lifecycle_bytes = LIFECYCLE_PATH.read_bytes()
+if hashlib.sha256(_lifecycle_bytes).hexdigest() != LIFECYCLE_SHA256:
+    raise RuntimeError("Scoring lifecycle dependency differs from reviewed c0bef bytes")
+lifecycle = types.ModuleType("_scoring_lifecycle")
+lifecycle.__file__ = str(LIFECYCLE_PATH)
+exec(compile(_lifecycle_bytes, str(LIFECYCLE_PATH), "exec"), lifecycle.__dict__)
 
-def capture(*command):
+
+def capture(*command, supervisor=None):
+    if supervisor is not None:
+        return supervisor.output(list(command), SOURCE, dict(os.environ)).decode().strip()
     return subprocess.check_output(command, text=True, stderr=subprocess.STDOUT).strip()
 
 
@@ -38,10 +53,10 @@ def file_identity(path):
     return [status.st_dev, status.st_ino, status.st_size, status.st_mtime_ns]
 
 
-def browser_metadata(binary):
+def browser_metadata(binary, supervisor=None):
     result = {
         "path": str(binary),
-        "version": capture(str(binary), "--version"),
+        "version": capture(str(binary), "--version", supervisor=supervisor),
         "sha256": digest(binary),
         "file_identity": file_identity(binary),
     }
@@ -99,54 +114,24 @@ class WorkloadCancelled(Exception):
         super().__init__(f"Workload cancelled by signal {signum}")
 
 
-def run_workload(command, environment, log, lock_fd):
-    def cancel(signum, frame):
-        raise WorkloadCancelled(signum)
-
-    signals = (signal.SIGTERM, signal.SIGINT)
-    previous = {signum: signal.signal(signum, cancel) for signum in signals}
-    process = None
-    try:
-        process = subprocess.Popen(
-            command,
-            cwd=SOURCE,
-            env=environment,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            start_new_session=True,
-            pass_fds=(lock_fd,),
-        )
-        for line in process.stdout:
-            if "'env':" in line or '"env":' in line or "Using env:" in line:
-                log.write("[harness environment dump omitted]\n")
-            else:
-                log.write(line)
-            log.flush()
-        return process.wait()
-    finally:
-        # Finish the entire owned group before the parent's resource lock closes.
-        for signum in signals:
-            signal.signal(signum, signal.SIG_IGN)
+def run_workload(command, environment, log, supervisor):
+    # Anonymous storage preserves environment-dump redaction without a second
+    # process owner or a durable unredacted Raptor log. The custodian drains every
+    # owned descendant, including separate sessions, before this call returns.
+    with tempfile.TemporaryFile(mode="w+t") as raw:
         try:
-            if process is not None:
-                try:
-                    os.killpg(process.pid, signal.SIGTERM)
-                except ProcessLookupError:
-                    pass
-                try:
-                    process.wait(timeout=5)
-                except subprocess.TimeoutExpired:
-                    pass
-                try:
-                    os.killpg(process.pid, signal.SIGKILL)
-                except ProcessLookupError:
-                    pass
-                process.wait()
-                process.stdout.close()
+            try:
+                return supervisor.run(command, SOURCE, environment, raw)
+            except lifecycle.Cancelled:
+                raise WorkloadCancelled(supervisor.cancelled or signal.SIGTERM)
         finally:
-            for signum, handler in previous.items():
-                signal.signal(signum, handler)
+            raw.seek(0)
+            for line in raw:
+                if "'env':" in line or '"env":' in line or "Using env:" in line:
+                    log.write("[harness environment dump omitted]\n")
+                else:
+                    log.write(line)
+            log.flush()
 
 
 def swap_counters():
@@ -196,249 +181,258 @@ def main():
         parser.error("Profiling is only supported for the preserved source Firefox")
     root = args.root.resolve()
     root.mkdir(parents=True, exist_ok=True)
-    with (root / "resource.lock").open("w") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        if (
-            subprocess.run(
-                ["tmux", "has-session", "-t", "firefox-build"],
-                capture_output=True,
-                check=False,
-            ).returncode
-            == 0
-        ):
+    custody = root / "scoring-custody" / uuid.uuid4().hex / "state.json"
+    return lifecycle.run_guarded(
+        root / "resource.lock", custody,
+        lambda supervisor: run_comparison(args, root, supervisor),
+    )
+
+
+def run_comparison(args, root, supervisor):
+    with tempfile.TemporaryFile() as probe:
+        if supervisor.run(["tmux", "has-session", "-t", "firefox-build"],
+                          SOURCE, dict(os.environ), probe) == 0:
             raise SystemExit("Refusing to benchmark during firefox-build")
-        if shutil.disk_usage(root).free < 10 * 1024**3:
-            raise SystemExit("Less than 10 GiB disk reserve")
-        stamp = datetime.datetime.now(TIMEZONE).strftime("%Y-%m-%dT%H-%M-%S%z")
-        output = root / ("profiles" if args.profile else "runs") / stamp
-        output.mkdir(parents=True)
+    if shutil.disk_usage(root).free < 10 * 1024**3:
+        raise SystemExit("Less than 10 GiB disk reserve")
+    stamp = datetime.datetime.now(TIMEZONE).strftime("%Y-%m-%dT%H-%M-%S%z")
+    output = root / ("profiles" if args.profile else "runs") / stamp
+    output.mkdir(parents=True)
+    browsers = [
+        ("chromium", "chrome", args.chromium.resolve()),
+        ("official-firefox", "firefox", args.official.resolve()),
+        ("source-firefox", "firefox", args.source_build.resolve()),
+    ]
+    if args.profile:
+        browsers = browsers[2:]
+    if args.only_browser:
         browsers = [
-            ("chromium", "chrome", args.chromium.resolve()),
-            ("official-firefox", "firefox", args.official.resolve()),
-            ("source-firefox", "firefox", args.source_build.resolve()),
+            browser for browser in browsers if browser[0] == args.only_browser
         ]
-        if args.profile:
-            browsers = browsers[2:]
-        if args.only_browser:
-            browsers = [
-                browser for browser in browsers if browser[0] == args.only_browser
-            ]
-        manifest = (
-            SOURCE / "testing/raptor/raptor/tests/benchmarks/speedometer-desktop.toml"
+    manifest = (
+        SOURCE / "testing/raptor/raptor/tests/benchmarks/speedometer-desktop.toml"
+    )
+    metadata = {
+        "lifecycle": {
+            "path": str(LIFECYCLE_PATH),
+            "sha256": LIFECYCLE_SHA256,
+            "accepted_merge": "c0bef74e02eee17d5df7a952269bbfb1557cb2ad",
+        },
+        "checkout_revision": capture("git", "-C", str(SOURCE), "rev-parse", "HEAD", supervisor=supervisor),
+        "source_diff": capture("git", "-C", str(SOURCE), "diff", "--stat", supervisor=supervisor),
+        "host": platform.uname()._asdict(),
+        "cpu": Path("/proc/cpuinfo").read_text(),
+        "manifest_sha256": digest(manifest),
+        "benchmark": {
+            name: (
+                SOURCE / "third_party/webkit/PerformanceTests/Speedometer3" / name
+            ).read_text()
+            for name in ("package.json", "moz.yaml")
+        },
+        "mozconfig": (SOURCE / "tools/performance/baseline/mozconfig").read_text(),
+        "rounds": args.rounds,
+        "profile_only": args.profile,
+        "browsers": {
+            label: browser_metadata(binary, supervisor=supervisor) for label, _, binary in browsers
+        },
+        "chromedriver": capture(str(args.chromedriver), "--version", supervisor=supervisor),
+        "geckodriver": capture(
+            str(
+                SOURCE
+                / "tools/browsertime/node_modules/@sitespeed.io/geckodriver/vendor/geckodriver"
+            ),
+            "--version",
+            supervisor=supervisor,
+        ),
+        "toolchain": {
+            name: capture(str(root / "state" / path), "--version", supervisor=supervisor)
+            for name, path in {
+                "clang": "clang/bin/clang",
+                "rustc": "rustc/bin/rustc",
+                "cargo": "rustc/bin/cargo",
+                "node": "node/bin/node",
+            }.items()
+        },
+        "harness_sha256": {
+            name: digest(SOURCE / "tools/performance/baseline" / name)
+            for name in (
+                "run.py",
+                "mozconfig",
+                "smoke.cjs",
+                "build.sh",
+                "preserve.sh",
+                "summarize.py",
+            )
+        },
+        "browsertime_package": json.loads(
+            (
+                SOURCE / "tools/browsertime/node_modules/browsertime/package.json"
+            ).read_text()
+        ),
+    }
+    harness_snapshot = output / "harness"
+    harness_snapshot.mkdir()
+    for name in metadata["harness_sha256"]:
+        shutil.copyfile(
+            SOURCE / "tools/performance/baseline" / name, harness_snapshot / name
         )
-        metadata = {
-            "checkout_revision": capture("git", "-C", str(SOURCE), "rev-parse", "HEAD"),
-            "source_diff": capture("git", "-C", str(SOURCE), "diff", "--stat"),
-            "host": platform.uname()._asdict(),
-            "cpu": Path("/proc/cpuinfo").read_text(),
-            "manifest_sha256": digest(manifest),
-            "benchmark": {
-                name: (
-                    SOURCE / "third_party/webkit/PerformanceTests/Speedometer3" / name
-                ).read_text()
-                for name in ("package.json", "moz.yaml")
-            },
-            "mozconfig": (SOURCE / "tools/performance/baseline/mozconfig").read_text(),
-            "rounds": args.rounds,
-            "profile_only": args.profile,
-            "browsers": {
-                label: browser_metadata(binary) for label, _, binary in browsers
-            },
-            "chromedriver": capture(str(args.chromedriver), "--version"),
-            "geckodriver": capture(
+    (output / "metadata.json").write_text(json.dumps(metadata, indent=2))
+    runtime_dir = root / "tmp" / f"runtime-{stamp}"
+    runtime_dir.mkdir(parents=True, mode=0o700)
+    environment = {
+        "HOME": os.environ["HOME"],
+        "LANG": "C.UTF-8",
+        "LC_ALL": "C.UTF-8",
+        "FIREFOX_BASELINE_ROOT": str(root),
+        "MOZBUILD_STATE_PATH": str(root / "state"),
+        "TMPDIR": str(root / "tmp"),
+        "MOZCONFIG": str(SOURCE / "tools/performance/baseline/mozconfig"),
+        "DISABLE_PROFILE_LAUNCH": "1",
+        "MOZ_REMOTE_ALLOW_SYSTEM_ACCESS": "1",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "XDG_RUNTIME_DIR": str(runtime_dir),
+        "XDG_CACHE_HOME": str(root / "cache"),
+        "UV_CACHE_DIR": str(root / "cache/uv"),
+        "PIP_CACHE_DIR": str(root / "cache/pip"),
+        "npm_config_cache": str(root / "cache/npm"),
+        "PATH": str(root / "state/node/bin")
+        + os.pathsep
+        + str(Path.home() / ".local/bin")
+        + os.pathsep
+        + "/usr/local/bin:/usr/bin:/bin",
+    }
+    (root / "tmp").mkdir(exist_ok=True)
+    for round_number in range(args.rounds):
+        order = (
+            browsers[round_number % len(browsers) :]
+            + browsers[: round_number % len(browsers)]
+        )
+        for label, app, binary in order:
+            shared_work = SOURCE / "testing/mozharness/build"
+            if (shared_work / "blobber_upload_dir").exists() or (
+                shared_work / "raptor.json"
+            ).exists():
+                raise SystemExit(
+                    "Uncollected mozharness output exists; preserve it before starting another run"
+                )
+            if changed_artifacts(metadata["browsers"][label]):
+                raise SystemExit(f"Browser changed during the comparison: {binary}")
+            run = output / f"{round_number + 1:02d}-{label}"
+            run.mkdir()
+            upload = run / "artifacts"
+            upload.mkdir()
+            command = [
+                "xvfb-run",
+                "-a",
+                "-s",
+                "-screen 0 1920x1080x24",
+                str(SOURCE / "mach"),
+                "--no-interactive",
+                "raptor",
+                "--browsertime",
+                "-t",
+                "speedometer3",
+                "--app",
+                app,
+                "--binary",
+                str(binary),
+                "--browser-cycles",
+                "1",
+                "--page-cycles",
+                "1",
+                "--browsertime-chromedriver",
+                str(args.chromedriver),
+                "--browsertime-geckodriver",
                 str(
                     SOURCE
                     / "tools/browsertime/node_modules/@sitespeed.io/geckodriver/vendor/geckodriver"
                 ),
-                "--version",
-            ),
-            "toolchain": {
-                name: capture(str(root / "state" / path), "--version")
-                for name, path in {
-                    "clang": "clang/bin/clang",
-                    "rustc": "rustc/bin/rustc",
-                    "cargo": "rustc/bin/cargo",
-                    "node": "node/bin/node",
-                }.items()
-            },
-            "harness_sha256": {
-                name: digest(SOURCE / "tools/performance/baseline" / name)
-                for name in (
-                    "run.py",
-                    "mozconfig",
-                    "smoke.cjs",
-                    "build.sh",
-                    "preserve.sh",
-                    "summarize.py",
+                "--browsertime-arg",
+                "docker=false",
+            ]
+            if app == "firefox":
+                command.append("--is-release-build")
+            if args.profile:
+                command.append("--gecko-profile")
+            environment["MOZ_UPLOAD_DIR"] = str(upload)
+            before = {
+                "command": command,
+                "loadavg": Path("/proc/loadavg").read_text(),
+                "meminfo": Path("/proc/meminfo").read_text(),
+                "cpu_stat": Path("/proc/stat").read_text(),
+                "swap_counters": swap_counters(),
+                "processes": capture("ps", "-eo", "comm,pcpu,rss", "--sort=-pcpu", supervisor=supervisor),
+                "started": datetime.datetime.now(TIMEZONE).isoformat(),
+            }
+            (run / "invocation.json").write_text(json.dumps(before, indent=2))
+            cancelled_signal = None
+            with (run / "raptor.log").open("w") as log:
+                try:
+                    exit_code = run_workload(
+                        command, environment, log, supervisor
+                    )
+                except WorkloadCancelled as error:
+                    cancelled_signal = error.signum
+                    exit_code = 128 + error.signum
+            collect_artifacts(run)
+            swap_after = swap_counters()
+            runtime_changes = changed_artifacts(metadata["browsers"][label])
+            binary_changed = bool(runtime_changes)
+            swap_delta = {
+                key: swap_after[key] - before["swap_counters"][key]
+                for key in swap_after
+            }
+            (run / "exit.json").write_text(
+                json.dumps(
+                    {
+                        "exit_code": exit_code,
+                        "cancelled_signal": cancelled_signal,
+                        "finished": datetime.datetime.now(TIMEZONE).isoformat(),
+                        "loadavg": Path("/proc/loadavg").read_text(),
+                        "cpu_stat": Path("/proc/stat").read_text(),
+                        "swap_io_delta_pages": swap_delta,
+                        "binary_changed": binary_changed,
+                        "changed_artifacts": runtime_changes,
+                    },
+                    indent=2,
                 )
-            },
-            "browsertime_package": json.loads(
-                (
-                    SOURCE / "tools/browsertime/node_modules/browsertime/package.json"
-                ).read_text()
-            ),
-        }
-        harness_snapshot = output / "harness"
-        harness_snapshot.mkdir()
-        for name in metadata["harness_sha256"]:
-            shutil.copyfile(
-                SOURCE / "tools/performance/baseline" / name, harness_snapshot / name
             )
-        (output / "metadata.json").write_text(json.dumps(metadata, indent=2))
-        runtime_dir = root / "tmp" / f"runtime-{stamp}"
-        runtime_dir.mkdir(parents=True, mode=0o700)
-        environment = {
-            "HOME": os.environ["HOME"],
-            "LANG": "C.UTF-8",
-            "LC_ALL": "C.UTF-8",
-            "FIREFOX_BASELINE_ROOT": str(root),
-            "MOZBUILD_STATE_PATH": str(root / "state"),
-            "TMPDIR": str(root / "tmp"),
-            "MOZCONFIG": str(SOURCE / "tools/performance/baseline/mozconfig"),
-            "DISABLE_PROFILE_LAUNCH": "1",
-            "MOZ_REMOTE_ALLOW_SYSTEM_ACCESS": "1",
-            "PYTHONDONTWRITEBYTECODE": "1",
-            "XDG_RUNTIME_DIR": str(runtime_dir),
-            "XDG_CACHE_HOME": str(root / "cache"),
-            "UV_CACHE_DIR": str(root / "cache/uv"),
-            "PIP_CACHE_DIR": str(root / "cache/pip"),
-            "npm_config_cache": str(root / "cache/npm"),
-            "PATH": str(root / "state/node/bin")
-            + os.pathsep
-            + str(Path.home() / ".local/bin")
-            + os.pathsep
-            + "/usr/local/bin:/usr/bin:/bin",
-        }
-        (root / "tmp").mkdir(exist_ok=True)
-        for round_number in range(args.rounds):
-            order = (
-                browsers[round_number % len(browsers) :]
-                + browsers[: round_number % len(browsers)]
+            if exit_code:
+                raise SystemExit(f"Failed run retained at {run}")
+            if binary_changed:
+                raise SystemExit(f"Browser changed during this run: {run}")
+            if any(swap_delta.values()):
+                raise SystemExit(
+                    f"Swap I/O contaminated this run; fix host conditions before repeating: {run}"
+                )
+            report = json.loads((run / "raptor.json").read_text())
+            suites = [
+                suite
+                for suite in report["suites"]
+                if suite["name"].startswith("speedometer3")
+                and suite.get("unit") == "score"
+            ]
+            if (
+                len(suites) != 1
+                or not math.isfinite(suites[0]["value"])
+                or suites[0]["value"] <= 0
+            ):
+                raise SystemExit(f"Missing/invalid Speedometer score: {run}")
+            (run / "score.json").write_text(
+                json.dumps(
+                    {
+                        "round": round_number + 1,
+                        "browser": label,
+                        "score": suites[0]["value"],
+                        "suite": suites[0]["name"],
+                    },
+                    indent=2,
+                )
             )
-            for label, app, binary in order:
-                shared_work = SOURCE / "testing/mozharness/build"
-                if (shared_work / "blobber_upload_dir").exists() or (
-                    shared_work / "raptor.json"
-                ).exists():
-                    raise SystemExit(
-                        "Uncollected mozharness output exists; preserve it before starting another run"
-                    )
-                if changed_artifacts(metadata["browsers"][label]):
-                    raise SystemExit(f"Browser changed during the comparison: {binary}")
-                run = output / f"{round_number + 1:02d}-{label}"
-                run.mkdir()
-                upload = run / "artifacts"
-                upload.mkdir()
-                command = [
-                    "xvfb-run",
-                    "-a",
-                    "-s",
-                    "-screen 0 1920x1080x24",
-                    str(SOURCE / "mach"),
-                    "--no-interactive",
-                    "raptor",
-                    "--browsertime",
-                    "-t",
-                    "speedometer3",
-                    "--app",
-                    app,
-                    "--binary",
-                    str(binary),
-                    "--browser-cycles",
-                    "1",
-                    "--page-cycles",
-                    "1",
-                    "--browsertime-chromedriver",
-                    str(args.chromedriver),
-                    "--browsertime-geckodriver",
-                    str(
-                        SOURCE
-                        / "tools/browsertime/node_modules/@sitespeed.io/geckodriver/vendor/geckodriver"
-                    ),
-                    "--browsertime-arg",
-                    "docker=false",
-                ]
-                if app == "firefox":
-                    command.append("--is-release-build")
-                if args.profile:
-                    command.append("--gecko-profile")
-                environment["MOZ_UPLOAD_DIR"] = str(upload)
-                before = {
-                    "command": command,
-                    "loadavg": Path("/proc/loadavg").read_text(),
-                    "meminfo": Path("/proc/meminfo").read_text(),
-                    "cpu_stat": Path("/proc/stat").read_text(),
-                    "swap_counters": swap_counters(),
-                    "processes": capture("ps", "-eo", "comm,pcpu,rss", "--sort=-pcpu"),
-                    "started": datetime.datetime.now(TIMEZONE).isoformat(),
-                }
-                (run / "invocation.json").write_text(json.dumps(before, indent=2))
-                cancelled_signal = None
-                with (run / "raptor.log").open("w") as log:
-                    try:
-                        exit_code = run_workload(
-                            command, environment, log, lock.fileno()
-                        )
-                    except WorkloadCancelled as error:
-                        cancelled_signal = error.signum
-                        exit_code = 128 + error.signum
-                collect_artifacts(run)
-                swap_after = swap_counters()
-                runtime_changes = changed_artifacts(metadata["browsers"][label])
-                binary_changed = bool(runtime_changes)
-                swap_delta = {
-                    key: swap_after[key] - before["swap_counters"][key]
-                    for key in swap_after
-                }
-                (run / "exit.json").write_text(
-                    json.dumps(
-                        {
-                            "exit_code": exit_code,
-                            "cancelled_signal": cancelled_signal,
-                            "finished": datetime.datetime.now(TIMEZONE).isoformat(),
-                            "loadavg": Path("/proc/loadavg").read_text(),
-                            "cpu_stat": Path("/proc/stat").read_text(),
-                            "swap_io_delta_pages": swap_delta,
-                            "binary_changed": binary_changed,
-                            "changed_artifacts": runtime_changes,
-                        },
-                        indent=2,
-                    )
-                )
-                if exit_code:
-                    raise SystemExit(f"Failed run retained at {run}")
-                if binary_changed:
-                    raise SystemExit(f"Browser changed during this run: {run}")
-                if any(swap_delta.values()):
-                    raise SystemExit(
-                        f"Swap I/O contaminated this run; fix host conditions before repeating: {run}"
-                    )
-                report = json.loads((run / "raptor.json").read_text())
-                suites = [
-                    suite
-                    for suite in report["suites"]
-                    if suite["name"].startswith("speedometer3")
-                    and suite.get("unit") == "score"
-                ]
-                if (
-                    len(suites) != 1
-                    or not math.isfinite(suites[0]["value"])
-                    or suites[0]["value"] <= 0
-                ):
-                    raise SystemExit(f"Missing/invalid Speedometer score: {run}")
-                (run / "score.json").write_text(
-                    json.dumps(
-                        {
-                            "round": round_number + 1,
-                            "browser": label,
-                            "score": suites[0]["value"],
-                            "suite": suites[0]["name"],
-                        },
-                        indent=2,
-                    )
-                )
-        print(output)
+    print(output, flush=True)
+
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())
