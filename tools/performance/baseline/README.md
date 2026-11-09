@@ -67,6 +67,7 @@ After the build session has ended successfully, run in a named tmux session:
 
 ```sh
 python3 tools/performance/baseline/run.py \
+  --source /path/to/existing/harness-checkout \
   --root "$FIREFOX_BASELINE_ROOT" \
   --official "$FIREFOX_BASELINE_ROOT/official/firefox/firefox" \
   --source-build "$FIREFOX_BASELINE_ROOT/binaries/source-stock-6181e6b5/firefox/firefox"
@@ -101,9 +102,12 @@ configuration files. A detached custodian owns the same resource lock and
 supervises setup probes and each Raptor invocation. It uses the reviewed
 `tools/standards/lifecycle.py` dependency pinned to accepted merge
 `c0bef74e02eee17d5df7a952269bbfb1557cb2ad`; a missing or changed dependency
-fails closed. The dependency and this caller must be deployed together in a
-complete source tree: `SOURCE` remains relative to this script's location.
-A tools-only export or an older source archive is not a replacement source tree.
+fails closed. The dependency and executed baseline helper files must be deployed together under
+`TOOL_ROOT`, derived from this script's location. `--source` selects a separate
+existing Mach/Raptor harness checkout; it defaults to `TOOL_ROOT` for a full-tree
+backward-compatible deployment. A tools-only bundle must supply `--source`;
+it is not a replacement Mach tree. The selected source cannot supply or replace
+the pinned custody dependency. No source files are installed or copied by selection.
 
 Cancellation and loss of the CLI cause the custodian to drain and reap owned
 descendants across worker threads, process groups and sessions before releasing
@@ -187,3 +191,41 @@ Relevant source: `browser/config/mozconfigs/linux64/common-opt`,
 `build/moz.configure/keyfiles.configure`, `toolkit/moz.configure`,
 `build/moz.configure/update-programs.configure`,
 `browser/app/profile/firefox.js`, and `modules/libpref/init/StaticPrefList.yaml`.
+
+
+## Explicit harness source and supplied runtime roles
+
+The opening build description records the original baseline experiment. The
+collector also accepts newly supplied control/candidate runtimes through the
+legacy `--official` and `--source-build` slots. Those names do not establish
+Mozilla distribution, PGO, LTO or compiled-source identity. Before a new cohort,
+attach the actual returned runtime-role manifests, BuildIDs, binary/library
+hashes, source/CPP, config, toolchain and loader receipts separately. Do not
+relabel the harness checkout/config as either browser's build provenance or
+reuse historical scores for a new pair.
+
+With `--source`, Mach/cwd, Raptor/benchmark inputs, Browsertime/driver paths,
+mozharness output and actual Mach mozconfig all use that checkout. Executed
+collector/helper hashes and snapshots use `HERE`/`TOOL_ROOT`; the actual source
+mozconfig has its own path/hash and `harness/source-mozconfig` snapshot.
+`checkout_revision` and `source_diff` remain harness fields; `harness_source`
+labels that scope explicitly. `toolchain` describes harness-side tools only.
+`collector_semantics=explicit-harness-source-v1` distinguishes this collector
+from unchanged historical snapshots/results. The summarizer no longer infers
+an official-PGO versus custom-no-PGO build configuration from legacy slot names.
+It retains the same rotating rounds, full-suite construction, rejection rules,
+score calculation and exploratory bootstrap interval.
+
+An existing source directory must contain Mach and the baseline mozconfig.
+This is a path preflight, not dependency provision or runtime readiness. Actual
+Raptor providers/obj-venv/Node/Browsertime/driver dependencies must already be
+provisioned and separately admitted before scoring; missing dependencies can
+make upstream harness setup attempt downloads. No automatic installation or
+real scoring is authorized by these preparation changes. Harness-generated
+outputs need their ordinary source-output window; selecting --source does not
+authorize tracked source edits. New paired runtimes and a separately admitted
+15-invocation cohort remain prerequisites for new measurements.
+
+`--source` is now an explicit harness option. Spell the runtime option
+`--source-build` in full: earlier argparse versions could treat `--source` only
+as an abbreviation for that runtime slot, not as a harness selector.

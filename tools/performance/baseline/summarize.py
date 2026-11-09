@@ -78,7 +78,7 @@ def main():
         "source_vs_chromium": comparison(
             ordered["source-firefox"], ordered["chromium"]
         ),
-        "limits": "Shared VM, no GPU; one workload; five-round bootstrap interval is exploratory. Source ThinLTO/no-PGO configuration differs from official PGO/full-LTO. No source optimization gain is established.",
+        "limits": "Shared VM, no GPU; one workload; five-round bootstrap interval is exploratory. Runtime source/build configuration must come from supplied runtime-role receipts; harness checkout/mozconfig identify only the harness. Legacy slot names do not establish official/PGO status. No source optimization gain is established.",
     }
     (root / "summary.json").write_text(json.dumps(result, indent=2) + "\n")
     print(json.dumps(result, indent=2))

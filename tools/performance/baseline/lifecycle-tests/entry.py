@@ -9,10 +9,9 @@ spec = importlib.util.spec_from_file_location('scoring_under_test', sys.argv[1])
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 case = Path(sys.argv[2])
-# This substitutes the source/dependency fixture, never shared SOURCE. All caller
-# argument parsing, lock/custodian code, workload loop and result handling are real.
-module.SOURCE = case/'source'
-sys.argv = ['run.py', '--root', str(case/'root'), '--official', str(case/'binary/firefox'),
+# The explicit fixture source never supplies the executed tooling/custodian.
+# Caller argument parsing, lock/custodian and workload/result handling stay real.
+sys.argv = ['run.py', '--source',str(case/'source'), '--root', str(case/'root'), '--official', str(case/'binary/firefox'),
             '--source-build', str(case/'binary/firefox'), '--chromium', str(case/'binary/firefox'),
             '--chromedriver', str(case/'binary/firefox'), '--only-browser', 'source-firefox', '--rounds','1']
 raise SystemExit(module.main())
