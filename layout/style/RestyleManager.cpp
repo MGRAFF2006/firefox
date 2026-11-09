@@ -3966,7 +3966,8 @@ void RestyleManager::DoReparentComputedStyleForFirstLine(
     AutoTArray<Element*, 4> contentsAncestors;
     for (Element* ancestor =
              aFrame->GetContent()->GetFlattenedTreeParentElement();
-         ancestor && Servo_Element_IsDisplayContents(ancestor);
+         ancestor && ancestor->HasServoData() &&
+         Servo_Element_IsDisplayContents(ancestor);
          ancestor = ancestor->GetFlattenedTreeParentElement()) {
       contentsAncestors.AppendElement(ancestor);
     }
@@ -3977,9 +3978,10 @@ void RestyleManager::DoReparentComputedStyleForFirstLine(
     newParent = layoutParent;
     for (size_t i = contentsAncestors.Length(); i > 0; --i) {
       Element* ancestor = contentsAncestors[i - 1];
+      RefPtr<ComputedStyle> contentsStyle =
+          ServoStyleSet::ResolveServoStyle(*ancestor);
       reparentedContentsStyle = aStyleSet.ReparentComputedStyle(
-          ServoStyleSet::ResolveServoStyle(*ancestor), newParent, layoutParent,
-          ancestor);
+          contentsStyle, newParent, layoutParent, ancestor);
       newParent = reparentedContentsStyle;
     }
   }
