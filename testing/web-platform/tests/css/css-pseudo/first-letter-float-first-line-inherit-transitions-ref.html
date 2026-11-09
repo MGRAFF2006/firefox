@@ -1,0 +1,15 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Explicit final first-letter styles</title>
+<style>
+.sample { color: red; font: 24px/1 monospace; width: 24ch; margin: 12px 0; }
+.line::first-line { color: green; }
+.floating::first-letter { float: left; }
+.right::first-letter { float: right; }
+</style>
+<p>First-letter styles update when floats and first-line rules change.</p>
+<div id="add" class="sample line floating right">First letter and more words across lines.</div>
+<div id="remove" class="sample line">First letter and more words across lines.</div>
+<div id="line" class="sample floating">First letter and more words across lines.</div>
+<div id="restore" class="sample line floating">First letter and more words across lines.</div>
+<style>#add::first-letter, #restore::first-letter { color: green; }</style>

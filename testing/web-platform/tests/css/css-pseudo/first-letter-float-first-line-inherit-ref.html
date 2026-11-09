@@ -1,0 +1,23 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Explicit color on floating first letters</title>
+<style>
+  .sample { color: red; font: 24px/1 monospace; width: 16ch; margin: 12px 0; }
+  .sample::first-line { color: green; }
+  .sample::first-letter { float: left; }
+  .right::first-letter { float: right; }
+  .override::first-letter { color: blue; }
+  .reset { background-color: lime; }
+  .reset::first-line { background-color: yellow; }
+  .reset::first-letter { background-color: inherit; }
+  .ordinary { color: red; font: 24px/1 monospace; }
+  .ordinary::first-line { color: green; }
+  .ordinary span { float: left; }
+</style>
+<p>Floated first letters inherit first-line color; ordinary floats do not.</p>
+<div class="sample">First letter and more words across lines.</div>
+<div class="sample right">First letter and more words across lines.</div>
+<div class="sample override">First letter and more words across lines.</div>
+<div class="sample reset">First letter preserves inherited background.</div>
+<div class="ordinary"><span>Ordinary float</span></div>
+<style>.sample::first-letter { color: green; } .override::first-letter { color: blue; } .reset::first-letter { background-color: lime; }</style>

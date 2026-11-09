@@ -179,8 +179,10 @@ ComputedStyle* nsPlaceholderFrame::GetParentComputedStyleForOutOfFlow(
 
   Element* parentElement =
       mContent ? mContent->GetFlattenedTreeParentElement() : nullptr;
-  // See the similar code in nsIFrame::DoGetParentComputedStyle.
-  if (parentElement && MOZ_LIKELY(parentElement->HasServoData()) &&
+  // First-letter placeholders share their parent frame's content, so its
+  // display:contents parent is not the first letter's style parent.
+  if (!mOutOfFlowFrame->IsLetterFrame() && parentElement &&
+      MOZ_LIKELY(parentElement->HasServoData()) &&
       Servo_Element_IsDisplayContents(parentElement)) {
     RefPtr<ComputedStyle> style =
         ServoStyleSet::ResolveServoStyle(*parentElement);
@@ -195,12 +197,11 @@ ComputedStyle* nsPlaceholderFrame::GetParentComputedStyleForOutOfFlow(
 
 ComputedStyle* nsPlaceholderFrame::GetLayoutParentStyleForOutOfFlow(
     nsIFrame** aProviderFrame) const {
-  // Lie about our pseudo so we can step out of all anon boxes and
-  // pseudo-elements.  The other option would be to reimplement the
-  // {ib} split gunk here.
-  //
-  // See the hack in CorrectStyleParentFrame for why we pass `MAX`.
-  *aProviderFrame = CorrectStyleParentFrame(GetParent(), PseudoStyleType::MAX);
+  // A floated first-letter inherits from first-line just like an in-flow one.
+  // Other out-of-flows must still skip pseudo-elements (bug 395623).
+  auto pseudo = mOutOfFlowFrame->IsLetterFrame() ? PseudoStyleType::FirstLetter
+                                                 : PseudoStyleType::MAX;
+  *aProviderFrame = CorrectStyleParentFrame(GetParent(), pseudo);
   return *aProviderFrame ? (*aProviderFrame)->Style() : nullptr;
 }
 
