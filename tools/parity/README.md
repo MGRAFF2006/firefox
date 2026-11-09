@@ -35,13 +35,25 @@ python3 tools/parity/run.py \
   --node /path/to/node
 ```
 
-The output directory must not exist. `--node` otherwise uses the Node executable
-on PATH; `--fixture` defaults to the adjacent unsigned XPI. Optional
+The output directory must not exist. `--node` otherwise selects Node on PATH.
+It must resolve to a native ELF executable named `node` or `nodejs`. Version
+manager dispatchers/shims and scripts are rejected before browser launch with
+an actionable diagnostic: pass the installed toolchain's real Node binary via
+`--node`. The fresh isolated HOME/PATH cannot retain a version manager's normal
+selection. `--fixture` defaults to the adjacent unsigned XPI. Optional
 `--official-source-record` and `--custom-source-record` supply existing provenance
 records explicitly; they are not inferred from the harness commit. All paths
 must refer to the intended host. The runner holds the resource lock nonblocking and runs the
 official binary before custom, one fresh headless profile at a time. A failure
 stops the comparison; it is retained rather than discarded or retried silently.
+
+The workload deadline stops new work; it does not release ownership of surviving
+processes. If TERM/KILL cleanup cannot finish immediately, the supervisor keeps
+the resource lock and writes `cleanup_pending` evidence until all owned live
+group members disappear and the leader is reaped. This exceptional cleanup can
+outlast the workload deadline. Do not forcibly kill that supervisor or declare
+the slot released while its cleanup is pending. Normal cancellation is ignored
+during this final cleanup so it cannot open the slot early.
 
 Networking stays inside a disposable user/network namespace: loopback serves
 WebDriver, dummy `192.0.2.1/32` serves test content, and only the

@@ -5,9 +5,13 @@
 import argparse
 import fcntl
 import importlib.util
+import contextlib
+import io
 import json
+import os
 from pathlib import Path
 import subprocess
+import shutil
 import sys
 import tempfile
 import time
@@ -33,6 +37,41 @@ class RunnerTests(unittest.TestCase):
     def read_report(self):
         return json.loads((self.args.output / 'resource-cleanup.json').read_text())
 
+    def test_default_node_dispatcher_is_rejected_before_launch(self):
+        backing = self.root / 'mise'
+        backing.write_text('#!/bin/sh\ncase "$0" in */node) exit 0;; *) exit 23;; esac\n')
+        backing.chmod(0o755)
+        shim = self.root / 'node'
+        shim.symlink_to(backing)
+        self.assertEqual(subprocess.run([str(shim)], check=False).returncode, 0)
+        self.assertEqual(subprocess.run([str(shim.resolve())], check=False).returncode, 23)
+        for name in ['official', 'custom']:
+            (self.root / name).touch()
+        argv = ['run.py', '--root', str(self.root), '--source', str(self.root),
+                '--official', str(self.args.official), '--custom', str(self.args.custom),
+                '--output', str(self.args.output)]
+        diagnostic = io.StringIO()
+        with mock.patch.object(sys, 'argv', argv), mock.patch.object(runner.shutil, 'which', return_value=str(shim)), \
+             mock.patch.object(runner.subprocess, 'Popen') as launch, contextlib.redirect_stderr(diagnostic):
+            with self.assertRaises(SystemExit) as error:
+                runner.arguments()
+            self.assertEqual(error.exception.code, 2)
+            launch.assert_not_called()
+        self.assertIn('pass --node a native ELF Node executable', diagnostic.getvalue())
+        self.assertFalse(self.args.output.exists())
+
+    def test_native_node_launches_with_isolated_home_and_path(self):
+        candidate = shutil.which('node', path='/usr/bin:/bin')
+        if not candidate:
+            self.skipTest('native Node unavailable on system test PATH')
+        node = runner.native_node(Path(candidate))
+        home = self.root / 'isolated-home'
+        home.mkdir()
+        env = {'PATH': os.defpath, 'HOME': str(home), 'LANG': 'C.UTF-8'}
+        probe = subprocess.run([str(node), '-e', 'process.stdout.write(process.release.name + "\\n" + process.env.HOME)'],
+                               env=env, text=True, capture_output=True, check=True, timeout=5)
+        self.assertEqual(probe.stdout, 'node\n' + str(home))
+
     def test_busy_lock_records_failure_without_launch(self):
         with (self.root / 'resource.lock').open('a') as lock:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -44,7 +83,7 @@ class RunnerTests(unittest.TestCase):
         self.assertIn('error', report)
 
     def test_first_failure_preserved_and_custom_not_launched(self):
-        def fail(args, label, binary, record, output, report, deadline):
+        def fail(args, label, binary, record, output, report, deadline, owned=None):
             report['runs'].append({'label': label})
             raise RuntimeError('synthetic official failure')
         with mock.patch.object(runner, 'run_target', side_effect=fail) as launch, mock.patch.object(runner, 'resources', return_value=self.sample):
@@ -54,6 +93,46 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(report['runs'], [{'label': 'official'}])
         self.assertIn('synthetic official failure', report['error'])
         self.assertTrue(report['lock_released'])
+
+    def test_pending_descendant_retains_lock_and_failure_evidence(self):
+        pending = True
+        observations = []
+        process = mock.Mock(pid=99999999)
+        process.poll.return_value = 0
+
+        def fail(args, label, binary, record, output, report, deadline, owned=None):
+            owned.append(process)
+            report['runs'].append({'label': label, 'owned_process_group': process.pid})
+            raise RuntimeError('injected cleanup incomplete after leader exit')
+
+        def wait_for_descendant(_):
+            nonlocal pending
+            snapshot = self.read_report()
+            self.assertTrue(snapshot['cleanup_pending'])
+            self.assertFalse(snapshot['lock_released'])
+            self.assertIn('injected cleanup incomplete', snapshot['error'])
+            probe = ('import fcntl,sys; f=open(sys.argv[1],"a"); '
+                     '\ntry: fcntl.flock(f,fcntl.LOCK_EX|fcntl.LOCK_NB)'
+                     '\nexcept BlockingIOError: sys.exit(23)')
+            result = subprocess.run([sys.executable, '-c', probe, str(self.root / 'resource.lock')], timeout=5)
+            self.assertEqual(result.returncode, 23)
+            observations.append('locked while descendant pending')
+            pending = False
+
+        clock = mock.Mock(wraps=runner.time)
+        clock.sleep.side_effect = wait_for_descendant
+        with mock.patch.object(runner, 'run_target', side_effect=fail), \
+             mock.patch.object(runner, 'resources', return_value=self.sample), \
+             mock.patch.object(runner, 'group_members', side_effect=lambda _: [process.pid] if pending else []), \
+             mock.patch.object(runner, 'time', clock):
+            self.assertEqual(runner.run(self.args), 1)
+        self.assertEqual(observations, ['locked while descendant pending'])
+        report = self.read_report()
+        self.assertFalse(report['cleanup_pending'])
+        self.assertTrue(report['lock_released'])
+        self.assertEqual(report['unreaped_leaders'], [])
+        with (self.root / 'resource.lock').open('a') as lock:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
 
     def test_cancellation_records_failure_and_releases_lock(self):
         with mock.patch.object(runner, 'run_target', side_effect=KeyboardInterrupt('cancelled')), mock.patch.object(runner, 'resources', return_value=self.sample):

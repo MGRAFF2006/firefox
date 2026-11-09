@@ -113,7 +113,7 @@ def provenance(binary, explicit_record):
             'limit': 'Records are copied, not verified against newly hashed binary bytes; harness revision is not engine revision.'}
 
 
-def run_target(args, label, binary, source_record, output, report, deadline):
+def run_target(args, label, binary, source_record, output, report, deadline, owned=None):
     temp = output / (label + '-tmp')
     temp.mkdir()
     home = temp / 'home'
@@ -130,6 +130,8 @@ def run_target(args, label, binary, source_record, output, report, deadline):
     with (output / (label + '.json')).open('x') as stdout, (output / (label + '.stderr')).open('x') as stderr:
         try:
             process = subprocess.Popen(command, env=env, stdout=stdout, stderr=stderr, start_new_session=True)
+            if owned is not None:
+                owned.append(process)
             item['owned_process_group'] = process.pid
             while process.poll() is None:
                 sample = resources()
@@ -164,12 +166,29 @@ def cancelled(signum, frame):
     raise KeyboardInterrupt(f'received signal {signum}')
 
 
+def settle_owned_processes(owned, report, output):
+    while True:
+        report['remaining_owned_processes'] = {str(process.pid): group_members(process.pid) for process in owned}
+        report['unreaped_leaders'] = [process.pid for process in owned if process.poll() is None]
+        report['cleanup_pending'] = bool(any(report['remaining_owned_processes'].values()) or report['unreaped_leaders'])
+        try:
+            (output / 'resource-cleanup.json').write_text(json.dumps(report, indent=2) + '\n')
+        except OSError as error:
+            report['cleanup_evidence_error'] = str(error)
+            report.setdefault('error', 'cleanup evidence write failed; retaining ownership until cleanup completes')
+        if not report['cleanup_pending']:
+            return
+        report.setdefault('error', 'owned process cleanup pending; resource lock retained')
+        time.sleep(1)
+
+
 def run(args):
     args.output.mkdir(parents=True, exist_ok=False)
     report = {'schema': 1, 'network': 'isolated user/network namespace, local dummy192.0.2.1/32, mDNS224.0.0.251/32 only, no default route',
               'runs': [], 'resources': [], 'source_mutated': False,
               'output': str(args.output), 'lock_acquired': False, 'lock_released': False}
     lock = None
+    owned = []
     saved_handlers = {sig: signal.getsignal(sig) for sig in (signal.SIGINT, signal.SIGTERM)}
     for sig in saved_handlers:
         signal.signal(sig, cancelled)
@@ -189,24 +208,22 @@ def run(args):
                                       ('custom', args.custom, args.custom_source_record)]:
             if time.monotonic() >= deadline:
                 raise RuntimeError('total workload time bound reached before next browser')
-            run_target(args, label, binary, record, args.output, report, deadline)
+            run_target(args, label, binary, record, args.output, report, deadline, owned=owned)
     except (Exception, KeyboardInterrupt) as error:
         report['error'] = str(error)
         report['cancelled'] = isinstance(error, KeyboardInterrupt)
     finally:
         for sig in saved_handlers:
             signal.signal(sig, signal.SIG_IGN)
+        settle_owned_processes(owned, report, args.output)
         try:
             report['resources'].append(resources())
         except Exception as error:
             report['resource_capture_error'] = str(error)
+        (args.output / 'resource-cleanup.json').write_text(json.dumps(report, indent=2) + '\n')
         if lock:
             lock.close()
             report['lock_released'] = report['lock_acquired']
-        report['remaining_owned_processes'] = {
-            item['label']: group_members(item['owned_process_group'])
-            for item in report['runs'] if 'owned_process_group' in item
-        }
         (args.output / 'resource-cleanup.json').write_text(json.dumps(report, indent=2) + '\n')
         for sig, handler in saved_handlers.items():
             signal.signal(sig, handler)
@@ -225,12 +242,25 @@ def arguments():
     args = parser.parse_args()
     if not args.node:
         parser.error('node not found; pass --node')
-    for name in ['root', 'source', 'official', 'custom', 'node', 'fixture', 'official_source_record', 'custom_source_record']:
+    try:
+        args.node = native_node(args.node)
+    except (OSError, ValueError) as error:
+        parser.error(str(error))
+    for name in ['root', 'source', 'official', 'custom', 'fixture', 'official_source_record', 'custom_source_record']:
         value = getattr(args, name)
         if value is not None:
             setattr(args, name, value.resolve(strict=True))
     args.output = args.output.resolve()
     return args
+
+
+def native_node(path):
+    path = path.resolve(strict=True)
+    with path.open('rb') as stream:
+        native = stream.read(4) == b'\x7fELF'
+    if not native or path.name not in ('node', 'nodejs') or not os.access(path, os.X_OK):
+        raise ValueError('Node dispatchers/shims are unsupported with the isolated HOME; pass --node a native ELF Node executable named node or nodejs from the installed toolchain')
+    return path
 
 
 if __name__ == '__main__':
