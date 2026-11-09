@@ -1,0 +1,24 @@
+{
+  "accepted_tooling_merge": "72b742f61cfe1fff4426608dcd2ff8de6d28872e",
+  "accepted_manifest": "/srv/development/build/firefox-perf/teams/integration/accepted-tools/72b742f61cfe1fff4426608dcd2ff8de6d28872e/manifest.json",
+  "accepted_manifest_sha256": "db3690de2ed3d90c62a45ab8602e77b55ad70b30d202f2f9b1b5f6b812fb96de",
+  "immutable_export": "/srv/development/build/firefox-perf/teams/integration/accepted-tools/72b742f61cfe1fff4426608dcd2ff8de6d28872e",
+  "source": "/srv/development/projects/firefox-perf",
+  "verified_export_file_count": 14,
+  "tool_file_sha256": {
+    "/srv/development/build/firefox-perf/teams/integration/accepted-tools/72b742f61cfe1fff4426608dcd2ff8de6d28872e/tools/iteration/README.md": "a149625d8a42ef9387f839e7d2f78d3394eb2ed8bb97e834dcf99398fb8bb149",
+    "/srv/development/build/firefox-perf/teams/integration/accepted-tools/72b742f61cfe1fff4426608dcd2ff8de6d28872e/tools/iteration/run.py": "4c74e1b58b1cffaa7e3c1658ec31081a626a2e874223a4a0fd7d1c2655c01c3d",
+    "/srv/development/build/firefox-perf/teams/integration/accepted-tools/72b742f61cfe1fff4426608dcd2ff8de6d28872e/tools/iteration/verify.py": "92bec261c926820b2cb015cc68f3f123056fe9af4e6d6f5386917058972f0ad0",
+    "/srv/development/build/firefox-perf/teams/integration/accepted-tools/72b742f61cfe1fff4426608dcd2ff8de6d28872e/tools/standards/README.md": "4e3768d3418826e5de2c7c4e53194682ad93506d9f532080e3df55a4c99b96c9",
+    "/srv/development/build/firefox-perf/teams/integration/accepted-tools/72b742f61cfe1fff4426608dcd2ff8de6d28872e/tools/standards/TRIAGE.md": "934fdd1d6fb92485c6458a5ee9c10b58a5e120e7622796f01ada31ae41eb0d5c",
+    "/srv/development/build/firefox-perf/teams/integration/accepted-tools/72b742f61cfe1fff4426608dcd2ff8de6d28872e/tools/standards/candidates.txt": "a9b6bcd81d9c08c152c3899a8f38f6d2480a8e925b93c56fcbacece650c4cf49",
+    "/srv/development/build/firefox-perf/teams/integration/accepted-tools/72b742f61cfe1fff4426608dcd2ff8de6d28872e/tools/standards/isolate.py": "25d1b2d23087b84275fbb830ff79ced485e9adf399637d7da64450c7a51e3a79",
+    "/srv/development/build/firefox-perf/teams/integration/accepted-tools/72b742f61cfe1fff4426608dcd2ff8de6d28872e/tools/standards/offline.py": "bee874b0df3746d947f23f3bc15846065772ca4d8f9bfb73c31205fa0dd0d6d7",
+    "/srv/development/build/firefox-perf/teams/integration/accepted-tools/72b742f61cfe1fff4426608dcd2ff8de6d28872e/tools/standards/prepare_manifest.py": "68bc37d76ccedda6b63720c06ff5b897175caba69f979a58b4f7699787f7069f",
+    "/srv/development/build/firefox-perf/teams/integration/accepted-tools/72b742f61cfe1fff4426608dcd2ff8de6d28872e/tools/standards/run.py": "97b96126fe71bb98c087d275534a4b3694ac932b012cb36d3b5615641acba834",
+    "/srv/development/build/firefox-perf/teams/integration/accepted-tools/72b742f61cfe1fff4426608dcd2ff8de6d28872e/tools/standards/smoke.txt": "2e8e2a6ebadd8b63e6c35c183e7e982b68b7cdd58658fd999ad2495c9aec85ce",
+    "/srv/development/build/firefox-perf/teams/integration/accepted-tools/72b742f61cfe1fff4426608dcd2ff8de6d28872e/tools/standards/summarize.py": "f3b986466893086ceebda7c037f315669a16999f2f003782aa365715f65bc14d",
+    "/srv/development/build/firefox-perf/teams/integration/accepted-tools/72b742f61cfe1fff4426608dcd2ff8de6d28872e/tools/standards/test_runner.py": "90a49a40e1e748e1414ad9898e08312a47a55351b5c0d5590e1778f79e1c70bd",
+    "/srv/development/build/firefox-perf/teams/integration/accepted-tools/72b742f61cfe1fff4426608dcd2ff8de6d28872e/tools/standards/test_summary.py": "afa865e6d84fdf11acada0543b7a3079bc9e5fa17d76fb80720a7afa2ecbc053"
+  }
+}

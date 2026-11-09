@@ -1,0 +1,147 @@
+{
+  "schema": 1,
+  "kind": "accepted tooling export only; not source checkout",
+  "repository": "MGRAFF2006/firefox",
+  "accepted_merge": "72b742f61cfe1fff4426608dcd2ff8de6d28872e",
+  "root_tree": "3ac88547705402d8d62480819ed55889b38d6483",
+  "tools_tree": "5398637b434fc1389fcd57ddb890855bb9f6c2c0",
+  "subtrees": {
+    "iteration": "c296b5d4c010bc86f8ca14b4c6c57959d31ca236",
+    "standards": "75c7ef668eae19564787d0615b4dc04f2309a5ab"
+  },
+  "file_count": 14,
+  "files": [
+    {
+      "path": "tools/iteration/README.md",
+      "git_blob": "df97a14c93a7ecf316bcaecaa65aa8a93211b533",
+      "git_mode": "100644",
+      "git_size": 13026,
+      "sha256": "a149625d8a42ef9387f839e7d2f78d3394eb2ed8bb97e834dcf99398fb8bb149",
+      "export_executable": false,
+      "export_mode": "0o444"
+    },
+    {
+      "path": "tools/iteration/run.py",
+      "git_blob": "d9c8ecfa75d828bf4974dd8742e46ee7c6ca1ef3",
+      "git_mode": "100644",
+      "git_size": 12557,
+      "sha256": "4c74e1b58b1cffaa7e3c1658ec31081a626a2e874223a4a0fd7d1c2655c01c3d",
+      "export_executable": false,
+      "export_mode": "0o444"
+    },
+    {
+      "path": "tools/iteration/verify.py",
+      "git_blob": "8be67737803078dc279eefc2686a90d3caebd490",
+      "git_mode": "100644",
+      "git_size": 13897,
+      "sha256": "92bec261c926820b2cb015cc68f3f123056fe9af4e6d6f5386917058972f0ad0",
+      "export_executable": false,
+      "export_mode": "0o444"
+    },
+    {
+      "path": "tools/standards/README.md",
+      "git_blob": "1d62a725c402677d07d70419d09f3b5f38f80186",
+      "git_mode": "100644",
+      "git_size": 9065,
+      "sha256": "4e3768d3418826e5de2c7c4e53194682ad93506d9f532080e3df55a4c99b96c9",
+      "export_executable": false,
+      "export_mode": "0o444"
+    },
+    {
+      "path": "tools/standards/TRIAGE.md",
+      "git_blob": "b0163125374419a69ac46f0e15d8edaffecfebeb",
+      "git_mode": "100644",
+      "git_size": 10772,
+      "sha256": "934fdd1d6fb92485c6458a5ee9c10b58a5e120e7622796f01ada31ae41eb0d5c",
+      "export_executable": false,
+      "export_mode": "0o444"
+    },
+    {
+      "path": "tools/standards/candidates.txt",
+      "git_blob": "b69b03d9fe4dfba067f70c2e164e32356f996fb7",
+      "git_mode": "100644",
+      "git_size": 152,
+      "sha256": "a9b6bcd81d9c08c152c3899a8f38f6d2480a8e925b93c56fcbacece650c4cf49",
+      "export_executable": false,
+      "export_mode": "0o444"
+    },
+    {
+      "path": "tools/standards/isolate.py",
+      "git_blob": "a11c8704e514ca70a6caa56773d32e7416423e97",
+      "git_mode": "100644",
+      "git_size": 1438,
+      "sha256": "25d1b2d23087b84275fbb830ff79ced485e9adf399637d7da64450c7a51e3a79",
+      "export_executable": false,
+      "export_mode": "0o444"
+    },
+    {
+      "path": "tools/standards/offline.py",
+      "git_blob": "2140974129626cb8b70c0c4cd77978a2809d197d",
+      "git_mode": "100644",
+      "git_size": 2097,
+      "sha256": "bee874b0df3746d947f23f3bc15846065772ca4d8f9bfb73c31205fa0dd0d6d7",
+      "export_executable": false,
+      "export_mode": "0o444"
+    },
+    {
+      "path": "tools/standards/prepare_manifest.py",
+      "git_blob": "d99a660f703ac1311ba86b99250b01be45c5edc5",
+      "git_mode": "100644",
+      "git_size": 2871,
+      "sha256": "68bc37d76ccedda6b63720c06ff5b897175caba69f979a58b4f7699787f7069f",
+      "export_executable": false,
+      "export_mode": "0o444"
+    },
+    {
+      "path": "tools/standards/run.py",
+      "git_blob": "b7064860992f0b1a0c235dfa549965386bcb54af",
+      "git_mode": "100644",
+      "git_size": 14043,
+      "sha256": "97b96126fe71bb98c087d275534a4b3694ac932b012cb36d3b5615641acba834",
+      "export_executable": false,
+      "export_mode": "0o444"
+    },
+    {
+      "path": "tools/standards/smoke.txt",
+      "git_blob": "807e07bc94b82ef246830bd6040071ba6617316f",
+      "git_mode": "100644",
+      "git_size": 702,
+      "sha256": "2e8e2a6ebadd8b63e6c35c183e7e982b68b7cdd58658fd999ad2495c9aec85ce",
+      "export_executable": false,
+      "export_mode": "0o444"
+    },
+    {
+      "path": "tools/standards/summarize.py",
+      "git_blob": "04f81a79d7c7c3e5845ca7eca485d6b079c22d5c",
+      "git_mode": "100644",
+      "git_size": 5468,
+      "sha256": "f3b986466893086ceebda7c037f315669a16999f2f003782aa365715f65bc14d",
+      "export_executable": false,
+      "export_mode": "0o444"
+    },
+    {
+      "path": "tools/standards/test_runner.py",
+      "git_blob": "cc179d74bf34e73f6aa89d2bcaa21ad9f689f277",
+      "git_mode": "100644",
+      "git_size": 4529,
+      "sha256": "90a49a40e1e748e1414ad9898e08312a47a55351b5c0d5590e1778f79e1c70bd",
+      "export_executable": false,
+      "export_mode": "0o444"
+    },
+    {
+      "path": "tools/standards/test_summary.py",
+      "git_blob": "1b46f79bfe4faab9bbe31527b7b5699e6c9c1968",
+      "git_mode": "100644",
+      "git_size": 4384,
+      "sha256": "afa865e6d84fdf11acada0543b7a3079bc9e5fa17d76fb80720a7afa2ecbc053",
+      "export_executable": false,
+      "export_mode": "0o444"
+    }
+  ],
+  "export_owner": "firefox-accepted-tool-exporter",
+  "source_checkout_unchanged": true,
+  "cutover": "PENDING BUILD quiet snapshot/adoption; exporting does not replace current SOURCE wrappers",
+  "read_only_export": true,
+  "cli_help_preflight_count": 6,
+  "cli_help_preflight_result": "six rc0, no workload execution"
+}

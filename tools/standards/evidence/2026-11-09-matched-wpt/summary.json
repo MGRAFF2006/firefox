@@ -1,0 +1,228 @@
+{
+  "phase2-smoke": {
+    "selected_source_files": 15,
+    "expected_generated_ids": 33,
+    "expected_ids_by_source_file": {
+      "dom/nodes/Document-createElement.html": [
+        "/dom/nodes/Document-createElement.html"
+      ],
+      "dom/nodes/Document-createElementNS.html": [
+        "/dom/nodes/Document-createElementNS.html"
+      ],
+      "html/semantics/forms/constraints/form-validation-validity-valueMissing.html": [
+        "/html/semantics/forms/constraints/form-validation-validity-valueMissing.html"
+      ],
+      "css/css-flexbox/flexbox-align-items-center-nested-001.html": [
+        "/css/css-flexbox/flexbox-align-items-center-nested-001.html"
+      ],
+      "css/css-grid/anonymous-grid-items-001.html": [
+        "/css/css-grid/anonymous-grid-items-001.html"
+      ],
+      "url/url-constructor.any.js": [
+        "/url/url-constructor.any.html?exclude=(file|javascript|mailto)",
+        "/url/url-constructor.any.html?include=file",
+        "/url/url-constructor.any.html?include=javascript",
+        "/url/url-constructor.any.html?include=mailto",
+        "/url/url-constructor.any.worker.html?exclude=(file|javascript|mailto)",
+        "/url/url-constructor.any.worker.html?include=file",
+        "/url/url-constructor.any.worker.html?include=javascript",
+        "/url/url-constructor.any.worker.html?include=mailto"
+      ],
+      "url/urlsearchparams-sort.any.js": [
+        "/url/urlsearchparams-sort.any.html",
+        "/url/urlsearchparams-sort.any.worker.html"
+      ],
+      "encoding/api-basics.any.js": [
+        "/encoding/api-basics.any.html",
+        "/encoding/api-basics.any.worker.html"
+      ],
+      "encoding/textdecoder-fatal.any.js": [
+        "/encoding/textdecoder-fatal.any.html",
+        "/encoding/textdecoder-fatal.any.worker.html"
+      ],
+      "streams/readable-streams/constructor.any.js": [
+        "/streams/readable-streams/constructor.any.html",
+        "/streams/readable-streams/constructor.any.serviceworker.html",
+        "/streams/readable-streams/constructor.any.sharedworker.html",
+        "/streams/readable-streams/constructor.any.worker.html"
+      ],
+      "fetch/api/basic/request-headers.any.js": [
+        "/fetch/api/basic/request-headers.any.html",
+        "/fetch/api/basic/request-headers.any.serviceworker.html",
+        "/fetch/api/basic/request-headers.any.sharedworker.html",
+        "/fetch/api/basic/request-headers.any.worker.html"
+      ],
+      "fetch/api/basic/mode-same-origin.any.js": [
+        "/fetch/api/basic/mode-same-origin.any.html",
+        "/fetch/api/basic/mode-same-origin.any.worker.html"
+      ],
+      "content-security-policy/script-src/scriptnonce-basic-blocked.sub.html": [
+        "/content-security-policy/script-src/scriptnonce-basic-blocked.sub.html"
+      ],
+      "WebCryptoAPI/digest/digest.https.any.js": [
+        "/WebCryptoAPI/digest/digest.https.any.html",
+        "/WebCryptoAPI/digest/digest.https.any.worker.html"
+      ],
+      "wai-aria/idlharness.window.js": [
+        "/wai-aria/idlharness.window.html"
+      ]
+    },
+    "runs": {
+      "stacked": {
+        "harness": {
+          "PASS": 2,
+          "OK": 31
+        },
+        "subtests": {
+          "PASS": 3076,
+          "FAIL": 145
+        },
+        "named_records": 3254,
+        "unexpected_records": 0,
+        "binary_source_revision": "99cd4fee1a1ce503950d2f8b99167ef5b8ca5911",
+        "harness_checkout_revision": "99cd4fee1a1ce503950d2f8b99167ef5b8ca5911",
+        "binary_sha256": "4d7ef1ae93c1717e6be4acefe9b2b771177e95006693d5e1b5ffc1bbfd1239ca",
+        "components_sha256": {
+          "application.ini": "f45feab88a4a06c6ed494ff2f3977e627063548499440435d89ff7543f40c52a",
+          "platform.ini": "0d52138194105a19be1c8f2ef8d9d4703a5241e24974cac34aa7fbab27bbe83e",
+          "libxul.so": "5c96828d7a19546fbd15bc6d30cd1a041163aabea073867cdba90c5713a90d16"
+        },
+        "tool_sha256": {
+          "python": "889c603f0d17cb54060951bcf4c4f9b8c9ebd9e52b392c70209bbb9755d797d9",
+          "webdriver": "ad7cef75f87a17491abb212ae84923dd29f6782b8347959d21bd138efc2b5f99",
+          "certutil": "815d8be06440a4dea3735ac102c7fedbcdb3b72d6ec32349431ac2cba55c19da"
+        },
+        "harness_sha256": {
+          "run.py": "97b96126fe71bb98c087d275534a4b3694ac932b012cb36d3b5615641acba834",
+          "offline.py": "bee874b0df3746d947f23f3bc15846065772ca4d8f9bfb73c31205fa0dd0d6d7",
+          "isolate.py": "25d1b2d23087b84275fbb830ff79ced485e9adf399637d7da64450c7a51e3a79",
+          "prepare_manifest.py": "68bc37d76ccedda6b63720c06ff5b897175caba69f979a58b4f7699787f7069f"
+        }
+      },
+      "source-stock": {
+        "harness": {
+          "OK": 31,
+          "PASS": 2
+        },
+        "subtests": {
+          "PASS": 3076,
+          "FAIL": 145
+        },
+        "named_records": 3254,
+        "unexpected_records": 0,
+        "binary_source_revision": "6181e6b5f28a8fbae1d5c3ef6f6626b5a2180213",
+        "harness_checkout_revision": "99cd4fee1a1ce503950d2f8b99167ef5b8ca5911",
+        "binary_sha256": "c3b28015d5ac8d894ea95cb897c90fb2c944b9c159ee7cf66e5260124ca0b414",
+        "components_sha256": {
+          "application.ini": "f45feab88a4a06c6ed494ff2f3977e627063548499440435d89ff7543f40c52a",
+          "platform.ini": "0d52138194105a19be1c8f2ef8d9d4703a5241e24974cac34aa7fbab27bbe83e",
+          "libxul.so": "54063bdc4f55e5d671731166c60be5d96de8883d286058283fbdf00b626f887d"
+        },
+        "tool_sha256": {
+          "python": "889c603f0d17cb54060951bcf4c4f9b8c9ebd9e52b392c70209bbb9755d797d9",
+          "webdriver": "ad7cef75f87a17491abb212ae84923dd29f6782b8347959d21bd138efc2b5f99",
+          "certutil": "815d8be06440a4dea3735ac102c7fedbcdb3b72d6ec32349431ac2cba55c19da"
+        },
+        "harness_sha256": {
+          "run.py": "97b96126fe71bb98c087d275534a4b3694ac932b012cb36d3b5615641acba834",
+          "offline.py": "bee874b0df3746d947f23f3bc15846065772ca4d8f9bfb73c31205fa0dd0d6d7",
+          "isolate.py": "25d1b2d23087b84275fbb830ff79ced485e9adf399637d7da64450c7a51e3a79",
+          "prepare_manifest.py": "68bc37d76ccedda6b63720c06ff5b897175caba69f979a58b4f7699787f7069f"
+        }
+      }
+    },
+    "pair_sidecar_scope": "one contemporaneous aggregate pair-level record, not per-command records",
+    "changed_named_records": 0,
+    "comparison_scope": "all named harness/subtest status, expected, message and known_intermittent records; durations and timestamps are not equality claims"
+  },
+  "stage2-webapi": {
+    "selected_source_files": 6,
+    "expected_generated_ids": 7,
+    "expected_ids_by_source_file": {
+      "custom-elements/custom-element-reaction-queue.html": [
+        "/custom-elements/custom-element-reaction-queue.html"
+      ],
+      "shadow-dom/imperative-slot-api-cross-shadow-root.html": [
+        "/shadow-dom/imperative-slot-api-cross-shadow-root.html"
+      ],
+      "html/semantics/interactive-elements/the-dialog-element/child-sequential-focus.html": [
+        "/html/semantics/interactive-elements/the-dialog-element/child-sequential-focus.html"
+      ],
+      "dom/nodes/MutationObserver-characterData.html": [
+        "/dom/nodes/MutationObserver-characterData.html"
+      ],
+      "fetch/api/cors/cors-basic.any.js": [
+        "/fetch/api/cors/cors-basic.any.html",
+        "/fetch/api/cors/cors-basic.any.worker.html"
+      ],
+      "css/css-typed-om/idlharness.html": [
+        "/css/css-typed-om/idlharness.html"
+      ]
+    },
+    "runs": {
+      "stacked": {
+        "harness": {
+          "OK": 7
+        },
+        "subtests": {
+          "PASS": 602,
+          "FAIL": 8
+        },
+        "named_records": 617,
+        "unexpected_records": 0,
+        "binary_source_revision": "99cd4fee1a1ce503950d2f8b99167ef5b8ca5911",
+        "harness_checkout_revision": "99cd4fee1a1ce503950d2f8b99167ef5b8ca5911",
+        "binary_sha256": "4d7ef1ae93c1717e6be4acefe9b2b771177e95006693d5e1b5ffc1bbfd1239ca",
+        "components_sha256": {
+          "application.ini": "f45feab88a4a06c6ed494ff2f3977e627063548499440435d89ff7543f40c52a",
+          "platform.ini": "0d52138194105a19be1c8f2ef8d9d4703a5241e24974cac34aa7fbab27bbe83e",
+          "libxul.so": "5c96828d7a19546fbd15bc6d30cd1a041163aabea073867cdba90c5713a90d16"
+        },
+        "tool_sha256": {
+          "python": "889c603f0d17cb54060951bcf4c4f9b8c9ebd9e52b392c70209bbb9755d797d9",
+          "webdriver": "ad7cef75f87a17491abb212ae84923dd29f6782b8347959d21bd138efc2b5f99",
+          "certutil": "815d8be06440a4dea3735ac102c7fedbcdb3b72d6ec32349431ac2cba55c19da"
+        },
+        "harness_sha256": {
+          "run.py": "97b96126fe71bb98c087d275534a4b3694ac932b012cb36d3b5615641acba834",
+          "offline.py": "bee874b0df3746d947f23f3bc15846065772ca4d8f9bfb73c31205fa0dd0d6d7",
+          "isolate.py": "25d1b2d23087b84275fbb830ff79ced485e9adf399637d7da64450c7a51e3a79",
+          "prepare_manifest.py": "68bc37d76ccedda6b63720c06ff5b897175caba69f979a58b4f7699787f7069f"
+        }
+      },
+      "source-stock": {
+        "harness": {
+          "OK": 7
+        },
+        "subtests": {
+          "PASS": 602,
+          "FAIL": 8
+        },
+        "named_records": 617,
+        "unexpected_records": 0,
+        "binary_source_revision": "6181e6b5f28a8fbae1d5c3ef6f6626b5a2180213",
+        "harness_checkout_revision": "99cd4fee1a1ce503950d2f8b99167ef5b8ca5911",
+        "binary_sha256": "c3b28015d5ac8d894ea95cb897c90fb2c944b9c159ee7cf66e5260124ca0b414",
+        "components_sha256": {
+          "application.ini": "f45feab88a4a06c6ed494ff2f3977e627063548499440435d89ff7543f40c52a",
+          "platform.ini": "0d52138194105a19be1c8f2ef8d9d4703a5241e24974cac34aa7fbab27bbe83e",
+          "libxul.so": "54063bdc4f55e5d671731166c60be5d96de8883d286058283fbdf00b626f887d"
+        },
+        "tool_sha256": {
+          "python": "889c603f0d17cb54060951bcf4c4f9b8c9ebd9e52b392c70209bbb9755d797d9",
+          "webdriver": "ad7cef75f87a17491abb212ae84923dd29f6782b8347959d21bd138efc2b5f99",
+          "certutil": "815d8be06440a4dea3735ac102c7fedbcdb3b72d6ec32349431ac2cba55c19da"
+        },
+        "harness_sha256": {
+          "run.py": "97b96126fe71bb98c087d275534a4b3694ac932b012cb36d3b5615641acba834",
+          "offline.py": "bee874b0df3746d947f23f3bc15846065772ca4d8f9bfb73c31205fa0dd0d6d7",
+          "isolate.py": "25d1b2d23087b84275fbb830ff79ced485e9adf399637d7da64450c7a51e3a79",
+          "prepare_manifest.py": "68bc37d76ccedda6b63720c06ff5b897175caba69f979a58b4f7699787f7069f"
+        }
+      }
+    },
+    "pair_sidecar_scope": "one contemporaneous aggregate pair-level record, not per-command records",
+    "changed_named_records": 0,
+    "comparison_scope": "all named harness/subtest status, expected, message and known_intermittent records; durations and timestamps are not equality claims"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "command": [
+    "python3",
+    "/srv/development/build/firefox-perf/teams/integration/accepted-tools/72b742f61cfe1fff4426608dcd2ff8de6d28872e/tools/standards/prepare_manifest.py",
+    "--source",
+    "/srv/development/projects/firefox-perf",
+    "--python",
+    "/srv/development/build/firefox-perf/standards-venv/bin/python",
+    "--output",
+    "/srv/development/build/firefox-perf/teams/standards/phase2-smoke-20261109T090038/manifest",
+    "--selection",
+    "/srv/development/build/firefox-perf/teams/integration/accepted-tools/72b742f61cfe1fff4426608dcd2ff8de6d28872e/tools/standards/smoke.txt",
+    "--resource-lock",
+    "/srv/development/build/firefox-perf/resource.lock"
+  ],
+  "env": {
+    "HOME": "/home/humunkulud",
+    "PATH": "/usr/local/bin:/usr/bin:/bin",
+    "LANG": "C.UTF-8",
+    "LC_ALL": "C.UTF-8",
+    "TZ": "Europe/Berlin",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "GIT_OPTIONAL_LOCKS": "0"
+  },
+  "timeout_seconds": 120
+}

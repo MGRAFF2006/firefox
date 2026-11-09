@@ -1,0 +1,16 @@
+# Bounded integration sample; not a conformance certification.
+dom/nodes/Document-createElement.html
+dom/nodes/Document-createElementNS.html
+html/semantics/forms/constraints/form-validation-validity-valueMissing.html
+css/css-flexbox/flexbox-align-items-center-nested-001.html
+css/css-grid/anonymous-grid-items-001.html
+url/url-constructor.any.js
+url/urlsearchparams-sort.any.js
+encoding/api-basics.any.js
+encoding/textdecoder-fatal.any.js
+streams/readable-streams/constructor.any.js
+fetch/api/basic/request-headers.any.js
+fetch/api/basic/mode-same-origin.any.js
+content-security-policy/script-src/scriptnonce-basic-blocked.sub.html
+WebCryptoAPI/digest/digest.https.any.js
+wai-aria/idlharness.window.js

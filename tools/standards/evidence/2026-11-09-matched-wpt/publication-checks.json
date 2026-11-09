@@ -1,0 +1,62 @@
+{
+  "scope": "allowlisted report/selection/manifest/provenance files only",
+  "unchanged_original_copies": true,
+  "redactions_or_normalizations": [],
+  "excluded": [
+    "profiles and runtime directories",
+    "browser/console/runner logs",
+    "agent transcripts",
+    "private MAR/artifact data",
+    "authentication state"
+  ],
+  "retained_disclosures": [
+    "machine-local paths, public account name and host/platform metadata in contemporaneous commands/invocations",
+    "standard WPT fixture strings may contain synthetic URL userinfo; these are test data, not account credentials"
+  ],
+  "environment_key_allowlist": [
+    "GIT_OPTIONAL_LOCKS",
+    "HOME",
+    "LANG",
+    "LC_ALL",
+    "MOZ_REMOTE_ALLOW_SYSTEM_ACCESS",
+    "PATH",
+    "PYTHONDONTWRITEBYTECODE",
+    "TMPDIR",
+    "TZ",
+    "XDG_CACHE_HOME",
+    "XDG_RUNTIME_DIR"
+  ],
+  "credential_pattern_hits": [],
+  "review_basis": "Explicit JSON field scopes and minimal allowlisted environment reviewed; raw WPT report content is controlled test result data. Pattern screening supplements, rather than proves, absence of every possible secret.",
+  "files_screened": 23,
+  "raw_reports_byte_identical": [
+    {
+      "path": "phase2-smoke/stacked/wptreport.json",
+      "sha256": "6691129fbaff66a416086ffffce773c037c51c17fa89034ea1789e696fc2dbdf",
+      "historical_recorded_sha256": "6691129fbaff66a416086ffffce773c037c51c17fa89034ea1789e696fc2dbdf",
+      "bytes": 435849,
+      "original_report_byte_identical": true
+    },
+    {
+      "path": "phase2-smoke/source-stock/wptreport.json",
+      "sha256": "b9a59641eace08efcd90959d1c43e889049f8099f3ceb7a8f4b36cddff1c8eed",
+      "historical_recorded_sha256": "b9a59641eace08efcd90959d1c43e889049f8099f3ceb7a8f4b36cddff1c8eed",
+      "bytes": 435849,
+      "original_report_byte_identical": true
+    },
+    {
+      "path": "stage2-webapi/stacked/wptreport.json",
+      "sha256": "cf95149a8e19cad0b3c3df996cc7dfd3bcbc88f0e570ec6fdee7b2810d195029",
+      "historical_recorded_sha256": "cf95149a8e19cad0b3c3df996cc7dfd3bcbc88f0e570ec6fdee7b2810d195029",
+      "bytes": 88299,
+      "original_report_byte_identical": true
+    },
+    {
+      "path": "stage2-webapi/source-stock/wptreport.json",
+      "sha256": "b37a74f7d6e7616fa973b47806486c6ac0cb7ed5d277fc5281ceab2472acbcb0",
+      "historical_recorded_sha256": "b37a74f7d6e7616fa973b47806486c6ac0cb7ed5d277fc5281ceab2472acbcb0",
+      "bytes": 88299,
+      "original_report_byte_identical": true
+    }
+  ]
+}
