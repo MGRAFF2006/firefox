@@ -67,16 +67,21 @@ and mozconfig paths, preventing accidental reuse from another checkout. This is 
 After each executed operation, `ROOT/iterations/BERLIN-TIMESTAMP-PID` contains
 `command.log` and `invocation.json`: command, current revision, tracked diff hash,
 readiness marker and hash, selected environment paths, config/compiler hashes
-and versions, host/load, exit status, elapsed and child CPU times. `build_inputs_sha256` hashes
+and versions, host/load, exit status, elapsed and child CPU times. Elapsed/CPU accounting
+covers the tool/Git probes and command; `executed` marks whether command launch
+was attempted. A cancellation during preparation may lack complete source/tool
+fingerprints, with `active_command` identifying the interrupted probe. `build_inputs_sha256` hashes
 the clean environment, mozconfig identity and toolchain paths/hashes/versions;
 compare it before treating repeated operations as equivalent. It excludes
 source inputs, which have separate revision/tracked-diff fields. Records use
-atomic replacement so readers see complete JSON. `running` without `finished`
+atomic replacement so readers see complete JSON. `preparing` or `running` without `finished`
 indicates incomplete evidence, including an uncatchable launcher termination.
-SIGINT/SIGTERM mark the operation cancelled, forward the signal to the owned
-process group and escalate to SIGKILL after five seconds. The Linux launcher
-adopts orphaned descendants and reaps the cancelled process group before
-releasing its lock. Cancellation exit codes are 128 plus the received signal.
+SIGINT/SIGTERM handling starts before lock acquisition and remains active through
+final evidence and lock release. Toolchain/Git probes and the command all run in
+supervised process groups; cancellation forwards the signal and escalates to
+SIGKILL after five seconds. On every group leader exit, including ordinary
+nonzero failure, the Linux launcher kills and reaps remaining group descendants
+before releasing its lock. The original command exit status is preserved. Cancellation exit codes are 128 plus the received signal.
 Processes blocked in uninterruptible kernel I/O can delay reaping; the lock stays
 held rather than admitting another heavy operation. The launcher cannot recover
 from SIGKILL or host loss. Child RSS is
@@ -174,7 +179,12 @@ command invocation, nonzero exit propagation, logs/time/memory records and uncha
 source mozconfig. It additionally exercises a hostile ambient PATH/HOME/locale,
 omission of unrelated secret-like environment, launch-error evidence, and a real
 SIGTERM cancellation with a SIGTERM-resistant child and grandchild. The fixture
-checks both lock retention during execution and grandchild removal/reaping.
+checks both lock retention during execution and grandchild removal/reaping. Two
+additional CLI regressions signal a blocked fixture compiler probe and fail a
+foreground command before it waits for its child. Both require descendant
+cleanup before lock release; probe cancellation also requires finalized early
+evidence. `--runner PATH --lifecycle-case probe` (or `failure`) runs the focused
+regression against a selected launcher for before/after reproduction.
 It never invokes Mach. The source build/config/active lock and
 parent readiness marker are untouched. Verification passed on homelab-dev; no
 incremental Firefox rebuild or actual browser run has been tested by this leaf.

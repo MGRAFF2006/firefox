@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Guard and launcher checks only: never invokes mach or changes the real build root."""
 import argparse
+import ctypes
 import fcntl
 import hashlib
 import json
@@ -15,11 +16,115 @@ import time
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--source', type=Path, required=True)
+parser.add_argument('--runner', type=Path, default=Path(__file__).with_name('run.py'))
+parser.add_argument('--lifecycle-case', choices=('probe', 'failure'))
 args = parser.parse_args()
 source = args.source.resolve()
-runner = Path(__file__).with_name('run.py')
+runner = args.runner.resolve()
 config = source / 'tools/performance/baseline/mozconfig'
 original = config.read_bytes()
+def assert_lock_held(root):
+    with (root / 'resource.lock').open('a') as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            return
+    raise AssertionError('Owned process is still live but resource lock was released')
+
+
+def assert_gone(pid):
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return
+    raise AssertionError(f'Owned process {pid} survived launcher exit')
+
+
+def lifecycle_regression(root, base, case):
+    # Reap fixture orphans even when checking an older, broken launcher.
+    assert ctypes.CDLL(None).prctl(36, 1, 0, 0, 0) == 0
+    fixture = root / ('lifecycle-' + case)
+    fixture.mkdir()
+    pid_path = fixture / 'child.pid'
+    group_path = fixture / 'group.pid'
+    ready_path = fixture / 'allow-exit'
+    tool = root / 'state/clang/bin/clang'
+    original_tool = tool.read_bytes()
+    child = ('import os,pathlib,signal,time; '
+             'signal.signal(signal.SIGTERM,signal.SIG_IGN); '
+             f'pathlib.Path({str(pid_path)!r}).write_text(str(os.getpid())); '
+             'time.sleep(60)')
+    command = [sys.executable, '-c', 'raise RuntimeError("command must not run")']
+    if case == 'probe':
+        tool.write_text('#!' + sys.executable + '\n' + child + '\n')
+    else:
+        parent = ('import os,pathlib,subprocess,sys,time\n'
+                  f'pathlib.Path({str(group_path)!r}).write_text(str(os.getpgrp()))\n'
+                  f'subprocess.Popen([sys.executable,"-c",{child!r}])\n'
+                  f'while not pathlib.Path({str(ready_path)!r}).exists(): time.sleep(.01)\n'
+                  'raise RuntimeError("foreground command failed before waiting for child")\n')
+        command = [sys.executable, '-c', parent]
+    process = None
+    try:
+        with (fixture / 'stdout').open('w+') as stdout, (fixture / 'stderr').open('w+') as stderr:
+            process = subprocess.Popen([*base, '--execute', 'check', '--', *command],
+                                       stdout=stdout, stderr=stderr, start_new_session=True)
+            deadline = time.monotonic() + 10
+            while not pid_path.exists():
+                assert process.poll() is None, 'Launcher exited before fixture child started'
+                assert time.monotonic() < deadline, 'Fixture child failed to start'
+                time.sleep(.01)
+            pid = int(pid_path.read_text())
+            assert_lock_held(root)
+            if case == 'probe':
+                process.send_signal(signal.SIGTERM)
+                time.sleep(.1)
+                assert process.poll() is None, 'Probe cancellation exited before stubborn probe cleanup'
+                assert_lock_held(root)
+            else:
+                ready_path.touch()
+            process.wait(timeout=10)
+            expected = 143 if case == 'probe' else 1
+            assert process.returncode == expected, (case, process.returncode)
+            assert_gone(pid)
+            stdout.seek(0)
+            evidence = json.loads((Path(stdout.read().strip()) / 'invocation.json').read_text())
+            assert evidence['finished'] and evidence['exit_code'] == expected
+            if case == 'probe':
+                assert evidence['status'] == 'cancelled'
+                assert evidence['cancelled_signal'] == signal.SIGTERM
+                assert evidence['executed'] is False
+                assert evidence['active_command'] == [str(tool), '--version']
+            else:
+                assert evidence['status'] == 'completed'
+                assert evidence['executed'] is True
+            with (root / 'resource.lock').open('a') as lock:
+                fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    finally:
+        if process is not None:
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            process.wait()
+        if group_path.exists():
+            try:
+                os.killpg(int(group_path.read_text()), signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+        if pid_path.exists():
+            pid = int(pid_path.read_text())
+            try:
+                os.kill(pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            try:
+                os.waitpid(pid, 0)
+            except ChildProcessError:
+                pass
+        tool.write_bytes(original_tool)
+
+
 with tempfile.TemporaryDirectory(prefix='firefox-iteration-') as directory:
     root = Path(directory)
     base = [sys.executable, str(runner), '--source', str(source), '--root', str(root)]
@@ -76,6 +181,10 @@ with tempfile.TemporaryDirectory(prefix='firefox-iteration-') as directory:
             tool.write_text('#!/bin/sh\nprintf "fixture toolchain only; PATH=%s; marker=%s\\n" "$PATH" "${ITERATION_SECRET-absent}"\n')
             tool.chmod(0o700)
     (root / 'tmp').mkdir()
+    if args.lifecycle_case:
+        lifecycle_regression(root, base, args.lifecycle_case)
+        print('PASS lifecycle regression:', args.lifecycle_case)
+        sys.exit(0)
     probe = ('import fcntl,os,pathlib; '
              'r=pathlib.Path(os.environ["FIREFOX_BASELINE_ROOT"]); '
              'f=(r/"resource.lock").open("a"); '
@@ -155,6 +264,8 @@ with tempfile.TemporaryDirectory(prefix='firefox-iteration-') as directory:
             process.communicate(timeout=10)
     with (root / 'resource.lock').open('a') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    lifecycle_regression(root, base, 'probe')
+    lifecycle_regression(root, base, 'failure')
     assert config.read_bytes() == original
-print('PASS: plans, closed hold, malformed/config/artifact guards, lock exclusion/release, real check exit/log/time evidence, clean stable environment, launcher failure evidence, process-group cancellation/reaping, unchanged source config')
+print('PASS: plans, closed hold, malformed/config/artifact guards, lock exclusion/release, real check exit/log/time evidence, clean stable environment, launcher failure evidence, process-group cancellation/reaping, blocked-probe cancellation, failed-command descendant cleanup, unchanged source config')
 print('No Firefox compile or browser run; toolchain version/hash paths use explicit isolated fixture executables.')

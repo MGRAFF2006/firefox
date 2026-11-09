@@ -18,6 +18,7 @@ import shutil
 import signal
 import subprocess
 import sys
+import tempfile
 import time
 from zoneinfo import ZoneInfo
 
@@ -51,71 +52,89 @@ def write_record(path, data):
     pending.replace(path)
 
 
-def run_command(command, source, env, log, lock_fd):
-    # Adopt orphaned grandchildren so cancellation can reap the whole owned group.
-    libc = ctypes.CDLL(None, use_errno=True)
-    if libc.prctl(36, 1, 0, 0, 0) != 0:  # PR_SET_CHILD_SUBREAPER
-        raise OSError(ctypes.get_errno(), "Cannot enable child subreaper")
-    cancelled = None
-    child = None
+class Cancelled(Exception):
+    pass
 
-    def cancel(signum, frame):
-        nonlocal cancelled
-        if cancelled is None:
-            cancelled = signum
-        if child is not None:
+
+class ProcessSupervisor:
+    def __init__(self):
+        self.cancelled = None
+        self.child = None
+
+    def __enter__(self):
+        # Adopt orphaned grandchildren so every owned process group can be reaped.
+        libc = ctypes.CDLL(None, use_errno=True)
+        if libc.prctl(36, 1, 0, 0, 0) != 0:  # PR_SET_CHILD_SUBREAPER
+            raise OSError(ctypes.get_errno(), "Cannot enable child subreaper")
+        self.previous = {signum: signal.signal(signum, self.cancel)
+                         for signum in (signal.SIGINT, signal.SIGTERM)}
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        try:
+            self.cleanup()
+        finally:
+            for signum, handler in self.previous.items():
+                signal.signal(signum, handler)
+
+    def cancel(self, signum, frame):
+        if self.cancelled is None:
+            self.cancelled = signum
+        self.signal_group(signum)
+
+    def signal_group(self, signum):
+        if self.child is not None:
             try:
-                os.killpg(child.pid, signum)
+                os.killpg(self.child.pid, signum)
             except ProcessLookupError:
                 pass
 
-    previous = {signum: signal.signal(signum, cancel)
-                for signum in (signal.SIGINT, signal.SIGTERM)}
-    try:
-        child = subprocess.Popen(command, cwd=source, env=env, stdout=log,
-                                 stderr=subprocess.STDOUT, pass_fds=(lock_fd,),
-                                 start_new_session=True)
-        deadline = None
+    def check_cancelled(self):
+        if self.cancelled is not None:
+            raise Cancelled()
+
+    def cleanup(self):
+        if self.child is None:
+            return
+        self.signal_group(signal.SIGKILL)
+        self.child.wait()
         while True:
-            if cancelled is not None:
-                if deadline is None:
-                    cancel(cancelled, None)
-                    deadline = time.monotonic() + 5
-                elif time.monotonic() >= deadline:
-                    try:
-                        os.killpg(child.pid, signal.SIGKILL)
-                    except ProcessLookupError:
-                        pass
-            code = child.poll()
-            if code is not None:
-                if cancelled is not None:
-                    try:
-                        os.killpg(child.pid, signal.SIGKILL)
-                    except ProcessLookupError:
-                        pass
-                    while True:
-                        try:
-                            os.waitpid(-child.pid, 0)
-                        except ChildProcessError:
-                            break
-                return (128 + cancelled if cancelled else code), cancelled
-            time.sleep(0.05)
-    except BaseException:
-        if child is not None:
             try:
-                os.killpg(child.pid, signal.SIGKILL)
-            except ProcessLookupError:
-                pass
-            child.wait()
-            while True:
-                try:
-                    os.waitpid(-child.pid, 0)
-                except ChildProcessError:
-                    break
-        raise
-    finally:
-        for signum, handler in previous.items():
-            signal.signal(signum, handler)
+                os.waitpid(-self.child.pid, 0)
+            except ChildProcessError:
+                break
+        self.child = None
+
+    def run(self, command, source, env, log, lock_fd):
+        self.check_cancelled()
+        try:
+            self.child = subprocess.Popen(command, cwd=source, env=env, stdout=log,
+                                          stderr=subprocess.STDOUT, pass_fds=(lock_fd,),
+                                          start_new_session=True)
+            deadline = None
+            while self.child.poll() is None:
+                if self.cancelled is not None:
+                    if deadline is None:
+                        self.signal_group(self.cancelled)
+                        deadline = time.monotonic() + 5
+                    elif time.monotonic() >= deadline:
+                        self.signal_group(signal.SIGKILL)
+                time.sleep(0.05)
+            code = self.child.returncode
+        finally:
+            # A failed foreground command may leave descendants behind too.
+            self.cleanup()
+        self.check_cancelled()
+        return code
+
+    def output(self, command, source, env, lock_fd):
+        with tempfile.TemporaryFile() as log:
+            code = self.run(command, source, env, log, lock_fd)
+            log.seek(0)
+            output = log.read()
+        if code:
+            raise subprocess.CalledProcessError(code, command, output=output)
+        return output
 
 
 def main():
@@ -158,8 +177,8 @@ def main():
             plan["readiness"] = f"blocked: {error}"
         print(json.dumps(plan, indent=2))
         return 0
-    # The baseline launcher already owns this inode; never unlink or replace it.
-    with (root / "resource.lock").open("a") as lock:
+    # Handlers outlive the lock, including probes, cleanup and final evidence.
+    with ProcessSupervisor() as processes, (root / "resource.lock").open("a") as lock:
         try:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
@@ -180,43 +199,55 @@ def main():
                 or info.get("topobjdir") != str(root / "obj-release")
                 or info.get("mozconfig") != str(config)):
             raise ValueError("Warm objdir source/root/mozconfig paths mismatch; do not reuse across checkouts")
-        tools = {name: root / "state" / folder / "bin" / name for name, folder in
-                 (("clang", "clang"), ("rustc", "rustc"), ("cargo", "rustc"))}
-        toolchain = {}
-        for name, path in tools.items():
-            version = subprocess.check_output([str(path), "--version"], text=True, env=env).strip()
-            toolchain[name] = {"path": str(path), "sha256": digest(path), "version": version}
         stamp = datetime.now(ZoneInfo("Europe/Berlin")).strftime("%Y-%m-%dT%H-%M-%S%z")
         output = root / "iterations" / f"{stamp}-{os.getpid()}"
         output.mkdir(parents=True, exist_ok=False)
-        plan.update(source_revision=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=source, text=True, env=env).strip(),
-                    tracked_diff_sha256=hashlib.sha256(subprocess.check_output(["git", "diff", "HEAD", "--binary"], cwd=source, env=env)).hexdigest(),
-                    marker=marker, marker_sha256=digest(root / "baseline-complete.json"),
-                    mozconfig_sha256=digest(config), toolchain=toolchain,
+        plan.update(marker=marker, marker_sha256=digest(root / "baseline-complete.json"),
+                    mozconfig_sha256=digest(config),
                     config_status_sha256=digest(root / "obj-release/config.status"),
                     host=platform.node(), platform=platform.platform(), load=os.getloadavg(),
-                    started=datetime.now(ZoneInfo("Europe/Berlin")).isoformat(), executed=True)
-        fingerprint = {"environment": env, "mozconfig_sha256": plan["mozconfig_sha256"],
-                       "toolchain": toolchain}
-        plan["build_inputs_sha256"] = hashlib.sha256(
-            json.dumps(fingerprint, sort_keys=True).encode()).hexdigest()
-        plan["status"] = "running"
+                    started=datetime.now(ZoneInfo("Europe/Berlin")).isoformat(), status="preparing")
         record = output / "invocation.json"
         write_record(record, plan)
         print(output, flush=True)
         start = time.monotonic()
         before = resource.getrusage(resource.RUSAGE_CHILDREN)
+
+        def probe(argv):
+            plan["active_command"] = argv
+            write_record(record, plan)
+            return processes.output(argv, source, env, lock.fileno())
+
+        code = 1
+        failure = None
         try:
+            tools = {name: root / "state" / folder / "bin" / name for name, folder in
+                     (("clang", "clang"), ("rustc", "rustc"), ("cargo", "rustc"))}
+            toolchain = {}
+            for name, path in tools.items():
+                version = probe([str(path), "--version"]).decode().strip()
+                toolchain[name] = {"path": str(path), "sha256": digest(path), "version": version}
+            plan["source_revision"] = probe(["git", "rev-parse", "HEAD"]).decode().strip()
+            plan["tracked_diff_sha256"] = hashlib.sha256(probe(["git", "diff", "HEAD", "--binary"])).hexdigest()
+            plan["toolchain"] = toolchain
+            fingerprint = {"environment": env, "mozconfig_sha256": plan["mozconfig_sha256"],
+                           "toolchain": toolchain}
+            plan["build_inputs_sha256"] = hashlib.sha256(
+                json.dumps(fingerprint, sort_keys=True).encode()).hexdigest()
+            processes.check_cancelled()
+            plan.update(status="running", executed=True, active_command=command)
+            write_record(record, plan)
             with (output / "command.log").open("wb") as log:
-                code, cancelled = run_command(command, source, env, log, lock.fileno())
-            plan["exit_code"] = code
-            plan["cancelled_signal"] = cancelled
-            plan["status"] = "cancelled" if cancelled else "completed"
+                code = processes.run(command, source, env, log, lock.fileno())
+            plan["status"] = "completed"
+        except Cancelled:
+            plan["status"] = "cancelled"
         except BaseException as error:
             plan["status"] = "launcher_error"
             plan["launcher_error"] = type(error).__name__
-            raise
+            failure = error
         finally:
+            processes.cleanup()
             usage = resource.getrusage(resource.RUSAGE_CHILDREN)
             plan["resources"] = {"user_seconds": usage.ru_utime - before.ru_utime,
                                  "system_seconds": usage.ru_stime - before.ru_stime,
@@ -227,9 +258,20 @@ def main():
                 plan["mozconfig_preserved"] = digest(config) == plan["mozconfig_sha256"]
             except OSError:
                 plan["mozconfig_preserved"] = False
-            write_record(record, plan)
+            while True:
+                cancelled = processes.cancelled
+                plan["cancelled_signal"] = cancelled
+                plan["exit_code"] = 128 + cancelled if cancelled else code
+                if cancelled:
+                    plan["status"] = "cancelled"
+                write_record(record, plan)
+                if processes.cancelled == cancelled:
+                    break
+        if failure is not None and processes.cancelled is None:
+            raise failure
         if not plan["mozconfig_preserved"]:
             raise ValueError(f"Mozconfig changed during operation; inspect {output}")
+        code = plan["exit_code"]
         return code if code >= 0 else 128 - code
 
 
