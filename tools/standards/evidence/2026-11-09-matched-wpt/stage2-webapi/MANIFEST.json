@@ -1,0 +1,104 @@
+{
+ "items": {
+  "testharness": {
+   "css": {
+    "css-typed-om": {
+     "idlharness.html": [
+      "aaff3a13922632082bfff307b605696233895af4",
+      [
+       null,
+       {
+        "timeout": "long"
+       }
+      ]
+     ]
+    }
+   },
+   "custom-elements": {
+    "custom-element-reaction-queue.html": [
+     "eb8366f2b415894f396da613987982ae41ffe0b6",
+     [
+      null,
+      {}
+     ]
+    ]
+   },
+   "dom": {
+    "nodes": {
+     "MutationObserver-characterData.html": [
+      "addaef03da1ac64ce9e6a6b1c5d244933b2c7f7b",
+      [
+       null,
+       {}
+      ]
+     ]
+    }
+   },
+   "fetch": {
+    "api": {
+     "cors": {
+      "cors-basic.any.js": [
+       "95de0af2d8f3b041aa84ebfb00707eb1fb65701a",
+       [
+        "fetch/api/cors/cors-basic.any.html",
+        {
+         "script_metadata": [
+          [
+           "script",
+           "../resources/utils.js"
+          ],
+          [
+           "script",
+           "/common/get-host-info.sub.js"
+          ]
+         ]
+        }
+       ],
+       [
+        "fetch/api/cors/cors-basic.any.worker.html",
+        {
+         "script_metadata": [
+          [
+           "script",
+           "../resources/utils.js"
+          ],
+          [
+           "script",
+           "/common/get-host-info.sub.js"
+          ]
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   "html": {
+    "semantics": {
+     "interactive-elements": {
+      "the-dialog-element": {
+       "child-sequential-focus.html": [
+        "84853fc216965037e5c84f1ed5e1c169654ebb79",
+        [
+         null,
+         {}
+        ]
+       ]
+      }
+     }
+    }
+   },
+   "shadow-dom": {
+    "imperative-slot-api-cross-shadow-root.html": [
+     "6958d57a7cefe9e8f03504644a05a72bac1b5923",
+     [
+      null,
+      {}
+     ]
+    ]
+   }
+  }
+ },
+ "url_base": "/",
+ "version": 9
+}

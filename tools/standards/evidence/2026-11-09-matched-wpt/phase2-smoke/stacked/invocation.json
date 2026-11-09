@@ -1,0 +1,564 @@
+{
+  "label": "stacked",
+  "source_head": "99cd4fee1a1ce503950d2f8b99167ef5b8ca5911",
+  "source_head_scope": "harness/test checkout; NOT a claim about the tested binary source revision",
+  "binary_source_revision": "99cd4fee1a1ce503950d2f8b99167ef5b8ca5911",
+  "binary_source_revision_scope": "operator declaration from external build record; not inferred from harness HEAD",
+  "declared_binary_build_mode": "noninstrumented-release",
+  "wpt_upstream": "0364154f9175aa87045a6647869641901b2efceb",
+  "wpt_tree": "d63660ce141f5584e0821d29aa2ef4e217e0f293",
+  "profiles_tree": "4025e45920b12288118d707ba24880f1f5d2b2b9",
+  "metadata_tree": "8b171f61beada0af461aa8cc464fe2a9e3ae7dc1",
+  "manifest_provenance": {
+    "wpt_tree": "d63660ce141f5584e0821d29aa2ef4e217e0f293",
+    "wpt_upstream": "0364154f9175aa87045a6647869641901b2efceb",
+    "selected_source_files": [
+      "dom/nodes/Document-createElement.html",
+      "dom/nodes/Document-createElementNS.html",
+      "html/semantics/forms/constraints/form-validation-validity-valueMissing.html",
+      "css/css-flexbox/flexbox-align-items-center-nested-001.html",
+      "css/css-grid/anonymous-grid-items-001.html",
+      "url/url-constructor.any.js",
+      "url/urlsearchparams-sort.any.js",
+      "encoding/api-basics.any.js",
+      "encoding/textdecoder-fatal.any.js",
+      "streams/readable-streams/constructor.any.js",
+      "fetch/api/basic/request-headers.any.js",
+      "fetch/api/basic/mode-same-origin.any.js",
+      "content-security-policy/script-src/scriptnonce-basic-blocked.sub.html",
+      "WebCryptoAPI/digest/digest.https.any.js",
+      "wai-aria/idlharness.window.js"
+    ],
+    "sha256": "0873e01f290663262220fa5f8da47d42b284f6d3fd0c1df6e1aec1e085dd731a",
+    "command": [
+      "/srv/development/build/firefox-perf/standards-venv/bin/python",
+      "/srv/development/projects/firefox-perf/testing/web-platform/tests/wpt",
+      "--venv",
+      "/srv/development/build/firefox-perf/standards-venv",
+      "--skip-venv-setup",
+      "manifest",
+      "--no-download",
+      "--no-parallel",
+      "--path",
+      "/srv/development/build/firefox-perf/teams/standards/phase2-smoke-20261109T090038/manifest/MANIFEST.json",
+      "--cache-root",
+      "/srv/development/build/firefox-perf/teams/standards/phase2-smoke-20261109T090038/manifest/cache",
+      "/srv/development/projects/firefox-perf/testing/web-platform/tests/dom/nodes/Document-createElement.html",
+      "/srv/development/projects/firefox-perf/testing/web-platform/tests/dom/nodes/Document-createElementNS.html",
+      "/srv/development/projects/firefox-perf/testing/web-platform/tests/html/semantics/forms/constraints/form-validation-validity-valueMissing.html",
+      "/srv/development/projects/firefox-perf/testing/web-platform/tests/css/css-flexbox/flexbox-align-items-center-nested-001.html",
+      "/srv/development/projects/firefox-perf/testing/web-platform/tests/css/css-grid/anonymous-grid-items-001.html",
+      "/srv/development/projects/firefox-perf/testing/web-platform/tests/url/url-constructor.any.js",
+      "/srv/development/projects/firefox-perf/testing/web-platform/tests/url/urlsearchparams-sort.any.js",
+      "/srv/development/projects/firefox-perf/testing/web-platform/tests/encoding/api-basics.any.js",
+      "/srv/development/projects/firefox-perf/testing/web-platform/tests/encoding/textdecoder-fatal.any.js",
+      "/srv/development/projects/firefox-perf/testing/web-platform/tests/streams/readable-streams/constructor.any.js",
+      "/srv/development/projects/firefox-perf/testing/web-platform/tests/fetch/api/basic/request-headers.any.js",
+      "/srv/development/projects/firefox-perf/testing/web-platform/tests/fetch/api/basic/mode-same-origin.any.js",
+      "/srv/development/projects/firefox-perf/testing/web-platform/tests/content-security-policy/script-src/scriptnonce-basic-blocked.sub.html",
+      "/srv/development/projects/firefox-perf/testing/web-platform/tests/WebCryptoAPI/digest/digest.https.any.js",
+      "/srv/development/projects/firefox-perf/testing/web-platform/tests/wai-aria/idlharness.window.js"
+    ],
+    "generator_sha256": "68bc37d76ccedda6b63720c06ff5b897175caba69f979a58b4f7699787f7069f",
+    "python_sha256": "889c603f0d17cb54060951bcf4c4f9b8c9ebd9e52b392c70209bbb9755d797d9",
+    "packages": [
+      [
+        "PyYAML",
+        "6.0.1"
+      ],
+      [
+        "aioquic",
+        "1.2.0"
+      ],
+      [
+        "attrs",
+        "26.1.0"
+      ],
+      [
+        "blessed",
+        "1.52.0"
+      ],
+      [
+        "certifi",
+        "2026.10.23"
+      ],
+      [
+        "cffi",
+        "2.1.1"
+      ],
+      [
+        "charset-normalizer",
+        "3.5.2"
+      ],
+      [
+        "cryptography",
+        "50.0.2"
+      ],
+      [
+        "distro",
+        "1.9.0"
+      ],
+      [
+        "html5lib",
+        "1.1"
+      ],
+      [
+        "idna",
+        "3.20"
+      ],
+      [
+        "jinxed",
+        "2.1.0"
+      ],
+      [
+        "marionette_driver",
+        "3.7.1"
+      ],
+      [
+        "mozInstall",
+        "2.1.0"
+      ],
+      [
+        "mozcrash",
+        "2.2.1"
+      ],
+      [
+        "mozdebug",
+        "0.4.0"
+      ],
+      [
+        "mozdevice",
+        "4.2.0"
+      ],
+      [
+        "mozfile",
+        "3.0.0"
+      ],
+      [
+        "mozinfo",
+        "1.2.3"
+      ],
+      [
+        "mozleak",
+        "0.2"
+      ],
+      [
+        "mozlog",
+        "8.1.0"
+      ],
+      [
+        "mozprocess",
+        "1.4.0"
+      ],
+      [
+        "mozprofile",
+        "3.0.0"
+      ],
+      [
+        "mozrunner",
+        "8.4.0"
+      ],
+      [
+        "mozshellutil",
+        "1.0.0"
+      ],
+      [
+        "mozsystemmonitor",
+        "1.0.1"
+      ],
+      [
+        "mozterm",
+        "1.0.0"
+      ],
+      [
+        "mozversion",
+        "2.4.0"
+      ],
+      [
+        "packaging",
+        "26.2"
+      ],
+      [
+        "pillow",
+        "12.1.1"
+      ],
+      [
+        "pip",
+        "25.1.1"
+      ],
+      [
+        "psutil",
+        "5.9.8"
+      ],
+      [
+        "pyOpenSSL",
+        "26.4.0"
+      ],
+      [
+        "pycparser",
+        "3.12"
+      ],
+      [
+        "pylsqpack",
+        "0.3.24"
+      ],
+      [
+        "redo",
+        "3.0.0"
+      ],
+      [
+        "requests",
+        "2.32.3"
+      ],
+      [
+        "service-identity",
+        "26.1.0"
+      ],
+      [
+        "six",
+        "1.17.0"
+      ],
+      [
+        "types-PyYAML",
+        "6.0.12.20241230"
+      ],
+      [
+        "types-psutil",
+        "6.1.0.20241221"
+      ],
+      [
+        "types-requests",
+        "2.32.0.20241016"
+      ],
+      [
+        "urllib3",
+        "2.6.3"
+      ],
+      [
+        "wcwidth",
+        "0.9.4"
+      ],
+      [
+        "webencodings",
+        "0.6.1"
+      ]
+    ]
+  },
+  "manifest_path": "/srv/development/build/firefox-perf/teams/standards/phase2-smoke-20261109T090038/manifest/MANIFEST.json",
+  "run_info_assumption": "noninstrumented stable release; confirm runtime build before interpreting expectations",
+  "configuration_note": "WPT metadata and automation prefs apply; empty metadata is not stock-default exposure",
+  "optional_components": "installation declined; MojoJS and downloaded OpenH264 coverage is unrun",
+  "metadata_mode": "mozilla",
+  "selection": [
+    "dom/nodes/Document-createElement.html",
+    "dom/nodes/Document-createElementNS.html",
+    "html/semantics/forms/constraints/form-validation-validity-valueMissing.html",
+    "css/css-flexbox/flexbox-align-items-center-nested-001.html",
+    "css/css-grid/anonymous-grid-items-001.html",
+    "url/url-constructor.any.js",
+    "url/urlsearchparams-sort.any.js",
+    "encoding/api-basics.any.js",
+    "encoding/textdecoder-fatal.any.js",
+    "streams/readable-streams/constructor.any.js",
+    "fetch/api/basic/request-headers.any.js",
+    "fetch/api/basic/mode-same-origin.any.js",
+    "content-security-policy/script-src/scriptnonce-basic-blocked.sub.html",
+    "WebCryptoAPI/digest/digest.https.any.js",
+    "wai-aria/idlharness.window.js"
+  ],
+  "selection_sha256": "2e8e2a6ebadd8b63e6c35c183e7e982b68b7cdd58658fd999ad2495c9aec85ce",
+  "binary": "/srv/development/build/firefox-perf/binaries/bug13610-stacked-99cd4fee1a1c/firefox/firefox",
+  "command": [
+    "/srv/development/build/firefox-perf/standards-venv/bin/python",
+    "/srv/development/build/firefox-perf/teams/integration/accepted-tools/72b742f61cfe1fff4426608dcd2ff8de6d28872e/tools/standards/offline.py",
+    "/srv/development/projects/firefox-perf/testing/web-platform/tests",
+    "--venv",
+    "/srv/development/build/firefox-perf/standards-venv",
+    "--skip-venv-setup",
+    "run",
+    "--channel=stable",
+    "--browser-channel=stable",
+    "--binary",
+    "/srv/development/build/firefox-perf/binaries/bug13610-stacked-99cd4fee1a1c/firefox/firefox",
+    "--headless",
+    "--processes=1",
+    "--no-pause-after-test",
+    "--no-install-fonts",
+    "--no-manifest-update",
+    "--no-manifest-download",
+    "--retry-unexpected=0",
+    "--metadata",
+    "/srv/development/projects/firefox-perf/testing/web-platform/meta",
+    "--manifest",
+    "/srv/development/build/firefox-perf/teams/standards/phase2-smoke-20261109T090038/manifest/MANIFEST.json",
+    "--run-info",
+    "/srv/development/build/firefox-perf/teams/standards/phase2-smoke-20261109T090038/stacked/run-info",
+    "--log-wptreport",
+    "/srv/development/build/firefox-perf/teams/standards/phase2-smoke-20261109T090038/stacked/wptreport.json",
+    "--log-raw",
+    "/srv/development/build/firefox-perf/teams/standards/phase2-smoke-20261109T090038/stacked/raw.jsonl",
+    "--certutil-binary",
+    "/usr/bin/certutil",
+    "--prefs-root",
+    "/srv/development/projects/firefox-perf/testing/profiles",
+    "--webdriver-binary",
+    "/srv/development/projects/firefox-perf/tools/browsertime/node_modules/@sitespeed.io/geckodriver/vendor/geckodriver",
+    "firefox",
+    "dom/nodes/Document-createElement.html",
+    "dom/nodes/Document-createElementNS.html",
+    "html/semantics/forms/constraints/form-validation-validity-valueMissing.html",
+    "css/css-flexbox/flexbox-align-items-center-nested-001.html",
+    "css/css-grid/anonymous-grid-items-001.html",
+    "url/url-constructor.any.js",
+    "url/urlsearchparams-sort.any.js",
+    "encoding/api-basics.any.js",
+    "encoding/textdecoder-fatal.any.js",
+    "streams/readable-streams/constructor.any.js",
+    "fetch/api/basic/request-headers.any.js",
+    "fetch/api/basic/mode-same-origin.any.js",
+    "content-security-policy/script-src/scriptnonce-basic-blocked.sub.html",
+    "WebCryptoAPI/digest/digest.https.any.js",
+    "wai-aria/idlharness.window.js"
+  ],
+  "executed": true,
+  "environment": {
+    "HOME": "/home/humunkulud",
+    "PATH": "/usr/local/bin:/usr/bin:/bin",
+    "LANG": "C.UTF-8",
+    "LC_ALL": "C.UTF-8",
+    "TZ": "Europe/Berlin",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "GIT_OPTIONAL_LOCKS": "0",
+    "MOZ_REMOTE_ALLOW_SYSTEM_ACCESS": "1",
+    "TMPDIR": "/tmp/wpt-7xolp5sc/tmp",
+    "XDG_CACHE_HOME": "/tmp/wpt-7xolp5sc/cache",
+    "XDG_RUNTIME_DIR": "/tmp/wpt-7xolp5sc/xdg"
+  },
+  "system": [
+    "Linux",
+    "homelab-dev",
+    "6.12.111+deb13-cloud-amd64",
+    "#1 SMP PREEMPT_DYNAMIC Debian 6.12.111-1 (2026-09-28)",
+    "x86_64"
+  ],
+  "created_utc": "2026-11-09T08:00:44.333627+00:00",
+  "build_config": {
+    "path": "/srv/development/projects/firefox-perf/tools/performance/baseline/mozconfig",
+    "sha256": "8dc755410532f3d7a614eb4150c0f6712ff902098a326fd1b6d071074091001a"
+  },
+  "runtime_directory": "/tmp/wpt-7xolp5sc",
+  "binary_sha256": "4d7ef1ae93c1717e6be4acefe9b2b771177e95006693d5e1b5ffc1bbfd1239ca",
+  "binary_version": "Mozilla Firefox 159.0.1",
+  "components_sha256": {
+    "application.ini": "f45feab88a4a06c6ed494ff2f3977e627063548499440435d89ff7543f40c52a",
+    "platform.ini": "0d52138194105a19be1c8f2ef8d9d4703a5241e24974cac34aa7fbab27bbe83e",
+    "libxul.so": "5c96828d7a19546fbd15bc6d30cd1a041163aabea073867cdba90c5713a90d16"
+  },
+  "tools_sha256": {
+    "python": "889c603f0d17cb54060951bcf4c4f9b8c9ebd9e52b392c70209bbb9755d797d9",
+    "webdriver": "ad7cef75f87a17491abb212ae84923dd29f6782b8347959d21bd138efc2b5f99",
+    "certutil": "815d8be06440a4dea3735ac102c7fedbcdb3b72d6ec32349431ac2cba55c19da"
+  },
+  "python_packages": [
+    [
+      "PyYAML",
+      "6.0.1"
+    ],
+    [
+      "aioquic",
+      "1.2.0"
+    ],
+    [
+      "attrs",
+      "26.1.0"
+    ],
+    [
+      "blessed",
+      "1.52.0"
+    ],
+    [
+      "certifi",
+      "2026.10.23"
+    ],
+    [
+      "cffi",
+      "2.1.1"
+    ],
+    [
+      "charset-normalizer",
+      "3.5.2"
+    ],
+    [
+      "cryptography",
+      "50.0.2"
+    ],
+    [
+      "distro",
+      "1.9.0"
+    ],
+    [
+      "html5lib",
+      "1.1"
+    ],
+    [
+      "idna",
+      "3.20"
+    ],
+    [
+      "jinxed",
+      "2.1.0"
+    ],
+    [
+      "marionette_driver",
+      "3.7.1"
+    ],
+    [
+      "mozInstall",
+      "2.1.0"
+    ],
+    [
+      "mozcrash",
+      "2.2.1"
+    ],
+    [
+      "mozdebug",
+      "0.4.0"
+    ],
+    [
+      "mozdevice",
+      "4.2.0"
+    ],
+    [
+      "mozfile",
+      "3.0.0"
+    ],
+    [
+      "mozinfo",
+      "1.2.3"
+    ],
+    [
+      "mozleak",
+      "0.2"
+    ],
+    [
+      "mozlog",
+      "8.1.0"
+    ],
+    [
+      "mozprocess",
+      "1.4.0"
+    ],
+    [
+      "mozprofile",
+      "3.0.0"
+    ],
+    [
+      "mozrunner",
+      "8.4.0"
+    ],
+    [
+      "mozshellutil",
+      "1.0.0"
+    ],
+    [
+      "mozsystemmonitor",
+      "1.0.1"
+    ],
+    [
+      "mozterm",
+      "1.0.0"
+    ],
+    [
+      "mozversion",
+      "2.4.0"
+    ],
+    [
+      "packaging",
+      "26.2"
+    ],
+    [
+      "pillow",
+      "12.1.1"
+    ],
+    [
+      "pip",
+      "25.1.1"
+    ],
+    [
+      "psutil",
+      "5.9.8"
+    ],
+    [
+      "pyOpenSSL",
+      "26.4.0"
+    ],
+    [
+      "pycparser",
+      "3.12"
+    ],
+    [
+      "pylsqpack",
+      "0.3.24"
+    ],
+    [
+      "redo",
+      "3.0.0"
+    ],
+    [
+      "requests",
+      "2.32.3"
+    ],
+    [
+      "service-identity",
+      "26.1.0"
+    ],
+    [
+      "six",
+      "1.17.0"
+    ],
+    [
+      "types-PyYAML",
+      "6.0.12.20241230"
+    ],
+    [
+      "types-psutil",
+      "6.1.0.20241221"
+    ],
+    [
+      "types-requests",
+      "2.32.0.20241016"
+    ],
+    [
+      "urllib3",
+      "2.6.3"
+    ],
+    [
+      "wcwidth",
+      "0.9.4"
+    ],
+    [
+      "webencodings",
+      "0.6.1"
+    ]
+  ],
+  "harness_sha256": {
+    "run.py": "97b96126fe71bb98c087d275534a4b3694ac932b012cb36d3b5615641acba834",
+    "offline.py": "bee874b0df3746d947f23f3bc15846065772ca4d8f9bfb73c31205fa0dd0d6d7",
+    "isolate.py": "25d1b2d23087b84275fbb830ff79ced485e9adf399637d7da64450c7a51e3a79",
+    "prepare_manifest.py": "68bc37d76ccedda6b63720c06ff5b897175caba69f979a58b4f7699787f7069f"
+  },
+  "isolation_command": [
+    "sudo",
+    "-n",
+    "unshare",
+    "--mount",
+    "--net",
+    "--propagation",
+    "private",
+    "/srv/development/build/firefox-perf/standards-venv/bin/python",
+    "/srv/development/build/firefox-perf/teams/integration/accepted-tools/72b742f61cfe1fff4426608dcd2ff8de6d28872e/tools/standards/isolate.py",
+    "/srv/development/build/firefox-perf/teams/standards/phase2-smoke-20261109T090038/stacked/isolation-payload.json"
+  ],
+  "runner_exit": 0,
+  "runtime_cleanup": "retained for explicit owner cleanup"
+}

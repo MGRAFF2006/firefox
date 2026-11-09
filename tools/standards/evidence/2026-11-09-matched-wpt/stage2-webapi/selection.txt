@@ -1,0 +1,7 @@
+# Bounded stage2 proposal; UNRUN; source pin 6181e6b5f28a8fbae1d5c3ef6f6626b5a2180213
+custom-elements/custom-element-reaction-queue.html
+shadow-dom/imperative-slot-api-cross-shadow-root.html
+html/semantics/interactive-elements/the-dialog-element/child-sequential-focus.html
+dom/nodes/MutationObserver-characterData.html
+fetch/api/cors/cors-basic.any.js
+css/css-typed-om/idlharness.html

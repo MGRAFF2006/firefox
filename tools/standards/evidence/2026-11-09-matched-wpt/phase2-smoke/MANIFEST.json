@@ -1,0 +1,662 @@
+{
+ "items": {
+  "reftest": {
+   "css": {
+    "css-flexbox": {
+     "flexbox-align-items-center-nested-001.html": [
+      "b6e2fdff0aaffc2df8187389183cd170bf6fb301",
+      [
+       null,
+       [
+        [
+         "/css/css-flexbox/flexbox-align-items-center-nested-001-ref.html",
+         "=="
+        ]
+       ],
+       {}
+      ]
+     ]
+    },
+    "css-grid": {
+     "anonymous-grid-items-001.html": [
+      "f5ddd5c340176596b0da1ff731c07f219e7c435e",
+      [
+       null,
+       [
+        [
+         "/css/css-grid/reference/anonymous-grid-items-001-ref.html",
+         "=="
+        ]
+       ],
+       {}
+      ]
+     ]
+    }
+   }
+  },
+  "testharness": {
+   "WebCryptoAPI": {
+    "digest": {
+     "digest.https.any.js": [
+      "d22b41702b6dd39893960954efebdfbc6cf8e67d",
+      [
+       "WebCryptoAPI/digest/digest.https.any.html",
+       {
+        "script_metadata": [
+         [
+          "title",
+          "WebCryptoAPI: digest()"
+         ],
+         [
+          "script",
+          "../util/helpers.js"
+         ],
+         [
+          "script",
+          "digest_test_data.js"
+         ],
+         [
+          "script",
+          "digest.js"
+         ],
+         [
+          "timeout",
+          "long"
+         ]
+        ],
+        "timeout": "long"
+       }
+      ],
+      [
+       "WebCryptoAPI/digest/digest.https.any.worker.html",
+       {
+        "script_metadata": [
+         [
+          "title",
+          "WebCryptoAPI: digest()"
+         ],
+         [
+          "script",
+          "../util/helpers.js"
+         ],
+         [
+          "script",
+          "digest_test_data.js"
+         ],
+         [
+          "script",
+          "digest.js"
+         ],
+         [
+          "timeout",
+          "long"
+         ]
+        ],
+        "timeout": "long"
+       }
+      ]
+     ]
+    }
+   },
+   "content-security-policy": {
+    "script-src": {
+     "scriptnonce-basic-blocked.sub.html": [
+      "2001afcd9cac51a007569bf8ea0642dc905b5422",
+      [
+       null,
+       {}
+      ]
+     ]
+    }
+   },
+   "dom": {
+    "nodes": {
+     "Document-createElement.html": [
+      "668b58af7fa6d49dd99c4f494c2d1c948b5323c5",
+      [
+       null,
+       {}
+      ]
+     ],
+     "Document-createElementNS.html": [
+      "9a0a97d879e9c358fd8e94b512985ee29125103e",
+      [
+       null,
+       {}
+      ]
+     ]
+    }
+   },
+   "encoding": {
+    "api-basics.any.js": [
+     "9c7fc879b779c6fa29baf566dc14d05dabfb08ba",
+     [
+      "encoding/api-basics.any.html",
+      {
+       "script_metadata": [
+        [
+         "global",
+         "window,dedicatedworker"
+        ],
+        [
+         "title",
+         "Encoding API: Basics"
+        ]
+       ]
+      }
+     ],
+     [
+      "encoding/api-basics.any.worker.html",
+      {
+       "script_metadata": [
+        [
+         "global",
+         "window,dedicatedworker"
+        ],
+        [
+         "title",
+         "Encoding API: Basics"
+        ]
+       ]
+      }
+     ]
+    ],
+    "textdecoder-fatal.any.js": [
+     "320ae6ec81917848144d6ea30dfd9a660af26f0c",
+     [
+      "encoding/textdecoder-fatal.any.html",
+      {
+       "script_metadata": [
+        [
+         "global",
+         "window,dedicatedworker"
+        ],
+        [
+         "title",
+         "Encoding API: Fatal flag"
+        ]
+       ]
+      }
+     ],
+     [
+      "encoding/textdecoder-fatal.any.worker.html",
+      {
+       "script_metadata": [
+        [
+         "global",
+         "window,dedicatedworker"
+        ],
+        [
+         "title",
+         "Encoding API: Fatal flag"
+        ]
+       ]
+      }
+     ]
+    ]
+   },
+   "fetch": {
+    "api": {
+     "basic": {
+      "mode-same-origin.any.js": [
+       "1457702f1b163b9ceaa9058e9f6f1db102ffcfc4",
+       [
+        "fetch/api/basic/mode-same-origin.any.html",
+        {
+         "script_metadata": [
+          [
+           "script",
+           "../resources/utils.js"
+          ],
+          [
+           "script",
+           "/common/get-host-info.sub.js"
+          ]
+         ]
+        }
+       ],
+       [
+        "fetch/api/basic/mode-same-origin.any.worker.html",
+        {
+         "script_metadata": [
+          [
+           "script",
+           "../resources/utils.js"
+          ],
+          [
+           "script",
+           "/common/get-host-info.sub.js"
+          ]
+         ]
+        }
+       ]
+      ],
+      "request-headers.any.js": [
+       "f6a7fe1494bb61d6d7c7e52be070954828ed9e52",
+       [
+        "fetch/api/basic/request-headers.any.html",
+        {
+         "script_metadata": [
+          [
+           "global",
+           "window,worker"
+          ],
+          [
+           "script",
+           "../resources/utils.js"
+          ]
+         ]
+        }
+       ],
+       [
+        "fetch/api/basic/request-headers.any.serviceworker.html",
+        {
+         "script_metadata": [
+          [
+           "global",
+           "window,worker"
+          ],
+          [
+           "script",
+           "../resources/utils.js"
+          ]
+         ]
+        }
+       ],
+       [
+        "fetch/api/basic/request-headers.any.sharedworker.html",
+        {
+         "script_metadata": [
+          [
+           "global",
+           "window,worker"
+          ],
+          [
+           "script",
+           "../resources/utils.js"
+          ]
+         ]
+        }
+       ],
+       [
+        "fetch/api/basic/request-headers.any.worker.html",
+        {
+         "script_metadata": [
+          [
+           "global",
+           "window,worker"
+          ],
+          [
+           "script",
+           "../resources/utils.js"
+          ]
+         ]
+        }
+       ]
+      ]
+     }
+    }
+   },
+   "html": {
+    "semantics": {
+     "forms": {
+      "constraints": {
+       "form-validation-validity-valueMissing.html": [
+        "c586c6debe85f55f9ac458a9ffa7b0b755fe133b",
+        [
+         null,
+         {}
+        ]
+       ]
+      }
+     }
+    }
+   },
+   "streams": {
+    "readable-streams": {
+     "constructor.any.js": [
+      "608dc48cfa39d7068d1364a0e1b629571c1782e6",
+      [
+       "streams/readable-streams/constructor.any.html",
+       {
+        "script_metadata": [
+         [
+          "global",
+          "window,worker"
+         ]
+        ]
+       }
+      ],
+      [
+       "streams/readable-streams/constructor.any.serviceworker.html",
+       {
+        "script_metadata": [
+         [
+          "global",
+          "window,worker"
+         ]
+        ]
+       }
+      ],
+      [
+       "streams/readable-streams/constructor.any.sharedworker.html",
+       {
+        "script_metadata": [
+         [
+          "global",
+          "window,worker"
+         ]
+        ]
+       }
+      ],
+      [
+       "streams/readable-streams/constructor.any.worker.html",
+       {
+        "script_metadata": [
+         [
+          "global",
+          "window,worker"
+         ]
+        ]
+       }
+      ]
+     ]
+    }
+   },
+   "url": {
+    "url-constructor.any.js": [
+     "b4b639b813e9752db24c38e94dcf57c084ee52fd",
+     [
+      "url/url-constructor.any.html?exclude=(file|javascript|mailto)",
+      {
+       "script_metadata": [
+        [
+         "script",
+         "/common/subset-tests-by-key.js"
+        ],
+        [
+         "timeout",
+         "long"
+        ],
+        [
+         "variant",
+         "?include=file"
+        ],
+        [
+         "variant",
+         "?include=javascript"
+        ],
+        [
+         "variant",
+         "?include=mailto"
+        ],
+        [
+         "variant",
+         "?exclude=(file|javascript|mailto)"
+        ]
+       ],
+       "timeout": "long"
+      }
+     ],
+     [
+      "url/url-constructor.any.html?include=file",
+      {
+       "script_metadata": [
+        [
+         "script",
+         "/common/subset-tests-by-key.js"
+        ],
+        [
+         "timeout",
+         "long"
+        ],
+        [
+         "variant",
+         "?include=file"
+        ],
+        [
+         "variant",
+         "?include=javascript"
+        ],
+        [
+         "variant",
+         "?include=mailto"
+        ],
+        [
+         "variant",
+         "?exclude=(file|javascript|mailto)"
+        ]
+       ],
+       "timeout": "long"
+      }
+     ],
+     [
+      "url/url-constructor.any.html?include=javascript",
+      {
+       "script_metadata": [
+        [
+         "script",
+         "/common/subset-tests-by-key.js"
+        ],
+        [
+         "timeout",
+         "long"
+        ],
+        [
+         "variant",
+         "?include=file"
+        ],
+        [
+         "variant",
+         "?include=javascript"
+        ],
+        [
+         "variant",
+         "?include=mailto"
+        ],
+        [
+         "variant",
+         "?exclude=(file|javascript|mailto)"
+        ]
+       ],
+       "timeout": "long"
+      }
+     ],
+     [
+      "url/url-constructor.any.html?include=mailto",
+      {
+       "script_metadata": [
+        [
+         "script",
+         "/common/subset-tests-by-key.js"
+        ],
+        [
+         "timeout",
+         "long"
+        ],
+        [
+         "variant",
+         "?include=file"
+        ],
+        [
+         "variant",
+         "?include=javascript"
+        ],
+        [
+         "variant",
+         "?include=mailto"
+        ],
+        [
+         "variant",
+         "?exclude=(file|javascript|mailto)"
+        ]
+       ],
+       "timeout": "long"
+      }
+     ],
+     [
+      "url/url-constructor.any.worker.html?exclude=(file|javascript|mailto)",
+      {
+       "script_metadata": [
+        [
+         "script",
+         "/common/subset-tests-by-key.js"
+        ],
+        [
+         "timeout",
+         "long"
+        ],
+        [
+         "variant",
+         "?include=file"
+        ],
+        [
+         "variant",
+         "?include=javascript"
+        ],
+        [
+         "variant",
+         "?include=mailto"
+        ],
+        [
+         "variant",
+         "?exclude=(file|javascript|mailto)"
+        ]
+       ],
+       "timeout": "long"
+      }
+     ],
+     [
+      "url/url-constructor.any.worker.html?include=file",
+      {
+       "script_metadata": [
+        [
+         "script",
+         "/common/subset-tests-by-key.js"
+        ],
+        [
+         "timeout",
+         "long"
+        ],
+        [
+         "variant",
+         "?include=file"
+        ],
+        [
+         "variant",
+         "?include=javascript"
+        ],
+        [
+         "variant",
+         "?include=mailto"
+        ],
+        [
+         "variant",
+         "?exclude=(file|javascript|mailto)"
+        ]
+       ],
+       "timeout": "long"
+      }
+     ],
+     [
+      "url/url-constructor.any.worker.html?include=javascript",
+      {
+       "script_metadata": [
+        [
+         "script",
+         "/common/subset-tests-by-key.js"
+        ],
+        [
+         "timeout",
+         "long"
+        ],
+        [
+         "variant",
+         "?include=file"
+        ],
+        [
+         "variant",
+         "?include=javascript"
+        ],
+        [
+         "variant",
+         "?include=mailto"
+        ],
+        [
+         "variant",
+         "?exclude=(file|javascript|mailto)"
+        ]
+       ],
+       "timeout": "long"
+      }
+     ],
+     [
+      "url/url-constructor.any.worker.html?include=mailto",
+      {
+       "script_metadata": [
+        [
+         "script",
+         "/common/subset-tests-by-key.js"
+        ],
+        [
+         "timeout",
+         "long"
+        ],
+        [
+         "variant",
+         "?include=file"
+        ],
+        [
+         "variant",
+         "?include=javascript"
+        ],
+        [
+         "variant",
+         "?include=mailto"
+        ],
+        [
+         "variant",
+         "?exclude=(file|javascript|mailto)"
+        ]
+       ],
+       "timeout": "long"
+      }
+     ]
+    ],
+    "urlsearchparams-sort.any.js": [
+     "4fd8cef69239d26eb6241df180453aedf00cc050",
+     [
+      "url/urlsearchparams-sort.any.html",
+      {}
+     ],
+     [
+      "url/urlsearchparams-sort.any.worker.html",
+      {}
+     ]
+    ]
+   },
+   "wai-aria": {
+    "idlharness.window.js": [
+     "590bf9e2e9fec8773a4ba01fd34bb71250a58c33",
+     [
+      "wai-aria/idlharness.window.html",
+      {
+       "script_metadata": [
+        [
+         "script",
+         "/resources/WebIDLParser.js"
+        ],
+        [
+         "script",
+         "/resources/idlharness.js"
+        ]
+       ]
+      }
+     ]
+    ]
+   }
+  }
+ },
+ "url_base": "/",
+ "version": 9
+}
