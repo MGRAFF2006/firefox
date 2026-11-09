@@ -1,0 +1,16 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Explicit first-line and first-letter colors</title>
+<style>
+.sample { color: red; font: 24px/1 monospace; width: 24ch; margin: 12px 0; }
+.sample::first-letter { float: left; color: green; }
+.first { color: green; }
+.blue { color: blue; }
+.blue::first-letter { color: blue; }
+</style>
+<p>First letters follow first-line inheritance through inline ancestors.</p>
+<div class="sample"><span class="first">First letter and more</span> words across lines.</div>
+<div class="sample"><span class="first">First letter and more</span> words across lines.</div>
+<div class="sample"><span class="first">First letter and more</span> words across lines.</div>
+<div class="sample blue">First letter and more words across lines.</div>
+<div class="sample blue">First letter and more words across lines.</div>

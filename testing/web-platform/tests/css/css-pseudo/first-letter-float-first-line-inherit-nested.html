@@ -1,0 +1,19 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Floated first-letter inheritance through inline ancestors</title>
+<link rel="help" href="https://drafts.csswg.org/css-pseudo-4/#first-letter-inheritance">
+<link rel="match" href="first-letter-float-first-line-inherit-nested-ref.html">
+<style>
+.sample { color: red; font: 24px/1 monospace; width: 24ch; margin: 12px 0; }
+.sample::first-line { color: green; }
+.sample::first-letter { float: left; }
+.contents span { display: contents; }
+.contents em { font-style: normal; }
+.explicit span, .specified span { color: blue; }
+</style>
+<p>First letters follow first-line inheritance through inline ancestors.</p>
+<div class="sample"><span><span>First letter and more words across lines.</span></span></div>
+<div class="sample contents"><span>First letter and more words across lines.</span></div>
+<div class="sample contents"><span><em>First letter and more words across lines.</em></span></div>
+<div class="sample contents specified"><span><em>First letter and more words across lines.</em></span></div>
+<div class="sample explicit"><span>First letter and more words across lines.</span></div>

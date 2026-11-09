@@ -1,0 +1,34 @@
+<!doctype html>
+<html class="reftest-wait">
+<meta charset="utf-8">
+<title>Dynamic floated first-letter and first-line removal</title>
+<link rel="help" href="https://drafts.csswg.org/css-pseudo-4/#first-letter-inheritance">
+<link rel="match" href="first-letter-float-first-line-inherit-transitions-ref.html">
+<style>
+.sample { color: red; font: 24px/1 monospace; width: 24ch; margin: 12px 0; }
+.line::first-line { color: green; }
+.floating::first-letter { float: left; }
+.right::first-letter { float: right; }
+</style>
+<p>First-letter styles update when floats and first-line rules change.</p>
+<div id="add" class="sample line">First letter and more words across lines.</div>
+<div id="remove" class="sample line floating">First letter and more words across lines.</div>
+<div id="line" class="sample line floating">First letter and more words across lines.</div>
+<div id="restore" class="sample line floating">First letter and more words across lines.</div>
+<script>
+document.documentElement.addEventListener("TestRendered", () => {
+  const add = document.getElementById("add");
+  add.classList.add("floating");
+  add.getBoundingClientRect();
+  document.getElementById("remove").classList.remove("floating");
+  document.getElementById("line").classList.remove("line");
+  const restore = document.getElementById("restore");
+  restore.classList.remove("line");
+  restore.getBoundingClientRect();
+  requestAnimationFrame(() => {
+    add.classList.add("right");
+    restore.classList.add("line");
+    document.documentElement.classList.remove("reftest-wait");
+  });
+});
+</script>

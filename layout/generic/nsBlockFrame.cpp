@@ -7463,10 +7463,19 @@ void nsBlockFrame::UpdateFirstLetterStyle(ServoRestyleState& aRestyleState) {
   nsIFrame* styleParent = CorrectStyleParentFrame(inFlowFrame->GetParent(),
                                                   PseudoStyleType::FirstLetter);
   ComputedStyle* parentStyle = styleParent->Style();
+  ComputedStyle* parentStyleIgnoringFirstLine = parentStyle;
+  if (styleParent->IsLineFrame()) {
+    parentStyleIgnoringFirstLine =
+        CorrectStyleParentFrame(this, PseudoStyleType::FirstLetter)->Style();
+  }
   RefPtr<ComputedStyle> firstLetterStyle =
       aRestyleState.StyleSet().ResolvePseudoElementStyle(
           *mContent->AsElement(), PseudoStyleType::FirstLetter, nullptr,
-          parentStyle);
+          parentStyleIgnoringFirstLine);
+  if (parentStyleIgnoringFirstLine != parentStyle) {
+    firstLetterStyle = aRestyleState.StyleSet().ReparentComputedStyle(
+        firstLetterStyle, parentStyle, parentStyle, mContent->AsElement());
+  }
   // Note that we don't need to worry about changehints for the continuation
   // styles: those will be handled by the styleParent already.
   RefPtr<ComputedStyle> continuationStyle =
