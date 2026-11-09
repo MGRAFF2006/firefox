@@ -1,0 +1,44 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Keyboard navigation past broken image maps</title>
+<link rel="help" href="https://html.spec.whatwg.org/multipage/interaction.html#sequential-focus-navigation">
+<script src="/resources/testharness.js"></script>
+<script src="/resources/testharnessreport.js"></script>
+<script src="/resources/testdriver.js"></script>
+<script src="/resources/testdriver-actions.js"></script>
+<script src="/resources/testdriver-vendor.js"></script>
+<script src="resources/keyboard-navigation.js"></script>
+<body>
+<script>
+promise_test(async t => {
+  const fixture = mapFixture(t);
+  await imageState(fixture.image, false);
+  await crosses(fixture);
+}, "A broken image map does not trap forward or backward keyboard navigation");
+
+promise_test(async t => {
+  const fixture = mapFixture(t, {mapped: false});
+  await imageState(fixture.image, false);
+  await crosses(fixture);
+}, "An ordinary broken image does not trap keyboard navigation");
+
+promise_test(async t => {
+  const fixture = mapFixture(t, {empty: true});
+  await imageState(fixture.image, false);
+  await crosses(fixture);
+}, "An empty map on a broken image does not trap keyboard navigation");
+
+promise_test(async t => {
+  const fixture = mapFixture(t);
+  await imageState(fixture.image, true);
+  await loadedOrder(fixture);
+}, "Loaded image map links retain forward and backward keyboard navigation");
+
+promise_test(async t => {
+  const fixture = mapFixture(t);
+  fixture.areas[0].tabIndex = -1;
+  fixture.areas[1].tabIndex = 0;
+  await imageState(fixture.image, true);
+  await loadedOrder(fixture, [fixture.areas[1]]);
+}, "Loaded map navigation respects negative and explicit zero tabindex");
+</script>

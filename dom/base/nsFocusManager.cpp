@@ -5133,6 +5133,11 @@ nsIContent* nsFocusManager::GetNextTabbableMapArea(bool aForward,
                                 : areaContent->GetPreviousSibling()) {
       focusable = areaContent->IsFocusableWithoutStyle();
       if (focusable && focusable.mTabIndex == aCurrentTabIndex) {
+        if (auto* area = HTMLAreaElement::FromNode(areaContent)) {
+          if (!IsAreaElementFocusable(*area)) {
+            continue;
+          }
+        }
         return areaContent;
       }
     }
