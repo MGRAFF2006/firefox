@@ -13,6 +13,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -54,28 +55,33 @@ class CancellationTests(unittest.TestCase):
             "import json,os,signal,subprocess,sys,time; "
             "child=subprocess.Popen([sys.executable,'-c',"
             "'import signal,time; signal.signal(signal.SIGTERM,signal.SIG_IGN); time.sleep(60)']); "
-            "print(json.dumps([os.getpid(),child.pid]),flush=True); time.sleep(60)"
+            "open(sys.argv[1], 'w').write(json.dumps([os.getpid(),child.pid])); time.sleep(60)"
         )
         runner = (
-            "import fcntl,os,sys; from run import run_workload,WorkloadCancelled; "
-            "lock=open(sys.argv[1],'a'); fcntl.flock(lock,fcntl.LOCK_EX); "
-            "\ntry: code=run_workload([sys.executable,'-c',sys.argv[2]],dict(os.environ),sys.stdout,lock.fileno())"
-            "\nexcept WorkloadCancelled as error: code=128+error.signum"
-            "\nsys.exit(code)"
+            "import os,sys; from pathlib import Path; from run import run_workload,lifecycle; "
+            "root=Path(sys.argv[1]); "
+            "code=lifecycle.run_guarded(root/'lock',root/'custody/state.json',"
+            "lambda owner: run_workload([sys.executable,'-c',sys.argv[2],str(root/'ready')],dict(os.environ),sys.stdout,owner)); "
+            "sys.exit(code)"
         )
         process = subprocess.Popen(
-            [sys.executable, "-c", runner, str(root / "lock"), workload],
+            [sys.executable, "-c", runner, str(root), workload],
             cwd=Path(__file__).parent,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
         )
-        ready, _, _ = select.select([process.stdout], [], [], 10)
-        if not ready:
-            process.kill()
-            stdout, stderr = process.communicate()
+        deadline = time.monotonic() + 10
+        while time.monotonic() < deadline:
+            ready = root / "ready"
+            if ready.exists() and ready.stat().st_size:
+                pids = json.loads(ready.read_text())
+                break
+            time.sleep(.01)
+        else:
+            process.terminate()
+            stdout, stderr = process.communicate(timeout=10)
             self.fail(f"Fixture failed to start: {stdout} {stderr}")
-        pids = json.loads(process.stdout.readline())
         return process, pids
 
     def test_signal_cleans_owned_group_before_unlock(self):
@@ -103,22 +109,37 @@ class CancellationTests(unittest.TestCase):
                         process.kill()
                     process.communicate()
 
-    def test_workload_inherits_lock_when_runner_is_killed(self):
+    def test_custodian_drains_workload_when_runner_is_killed(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             process, pids = self.launch(root)
             try:
                 process.kill()
                 process.wait(timeout=10)
-                self.assertTrue(self.alive(pids[0]))
+                deadline = time.monotonic() + 10
                 with (root / "lock").open("a") as lock:
-                    with self.assertRaises(BlockingIOError):
-                        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    while time.monotonic() < deadline:
+                        try:
+                            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                            break
+                        except BlockingIOError:
+                            time.sleep(.01)
+                    else:
+                        self.fail("Custodian retained lock beyond fixture deadline")
+                    self.assertFalse(any(self.alive(pid) for pid in pids))
+                    state = json.loads((root / "custody/state.json").read_text())
+                    self.assertTrue(state["cleanup_complete"])
+                    self.assertEqual(state["owned"], [])
             finally:
-                try:
-                    os.killpg(pids[0], signal.SIGKILL)
-                except ProcessLookupError:
-                    pass
+                # Stop fixture actors before manual custodian recovery, never
+                # force unlock to satisfy a test deadline.
+                for pid in reversed(pids):
+                    if self.alive(pid):
+                        fd = os.pidfd_open(pid)
+                        try:
+                            signal.pidfd_send_signal(fd, signal.SIGKILL)
+                        finally:
+                            os.close(fd)
                 process.communicate(timeout=10)
 
 
