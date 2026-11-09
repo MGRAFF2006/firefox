@@ -2,7 +2,6 @@
 """Plan or execute the source tree's pinned WPT runner; keep artifacts outside Git."""
 import argparse
 import datetime
-import fcntl
 import hashlib
 import json
 import os
@@ -11,21 +10,36 @@ from pathlib import Path
 import subprocess
 import sys
 
+from lifecycle import Cancelled, run_guarded
+
 PIN = "0364154f9175aa87045a6647869641901b2efceb"
 HERE = Path(__file__).resolve().parent
 
 
-def git(source, *args):
-    return subprocess.check_output(["git", "-C", str(source), *args], text=True).strip()
+def git(source, *args, processes=None):
+    command = ["git", "-C", str(source), *args]
+    if processes:
+        return processes.output(command, source, None).decode().strip()
+    return subprocess.check_output(command, text=True).strip()
 
 
-def digest(path):
+def digest(path, processes=None):
+    value = hashlib.sha256()
     with path.open("rb") as stream:
-        return hashlib.file_digest(stream, "sha256").hexdigest()
+        while True:
+            if processes:
+                processes.check_cancelled()
+            chunk = stream.read(1024 * 1024)
+            if not chunk:
+                break
+            value.update(chunk)
+    return value.hexdigest()
 
 
-def packages(python, environment):
+def packages(python, environment, processes=None):
     command = [str(python), "-c", "import importlib.metadata as m, json; print(json.dumps(sorted((d.metadata['Name'], d.version) for d in m.distributions())))"]
+    if processes:
+        return json.loads(processes.output(command, None, environment))
     return json.loads(subprocess.check_output(command, text=True, env=environment, stdin=subprocess.DEVNULL))
 
 
@@ -34,25 +48,31 @@ def outside_source(source, path):
         raise ValueError(f"runtime path must be outside source: {path}")
 
 
-def validate_source(source):
+def validate_source(source, processes=None):
     wpt = source / "testing/web-platform"
     if (wpt / "meta/mozilla-sync").read_text().strip() != "upstream: " + PIN:
         raise ValueError("WPT pin differs; review selection and update pin explicitly")
-    if git(source, "status", "--porcelain", "--", "testing/web-platform", "testing/profiles"):
+    if git(source, "status", "--porcelain", "--", "testing/web-platform", "testing/profiles", processes=processes):
         raise ValueError("WPT/profile source has uncommitted changes")
 
 
-def validate_manifest(path, tree, tests_root, python):
+def validate_manifest(path, tree, tests_root, python, processes=None):
     provenance = json.loads(path.with_suffix(".provenance.json").read_text())
     if provenance["wpt_tree"] != tree or provenance["wpt_upstream"] != PIN:
         raise ValueError("manifest belongs to a different WPT tree")
     if digest(path) != provenance["sha256"]:
         raise ValueError("manifest hash differs from its provenance")
-    result = subprocess.run([str(python), "-B", str(HERE / "offline.py"),
-                             "--validate-manifest", str(tests_root), str(path)],
-                            stdin=subprocess.DEVNULL, capture_output=True, text=True)
-    if result.returncode:
-        raise ValueError("Manifest is incompatible with pinned loader: " + result.stderr.strip())
+    command = [str(python), "-B", str(HERE / "offline.py"),
+               "--validate-manifest", str(tests_root), str(path)]
+    if processes:
+        try:
+            processes.output(command, None, None)
+        except subprocess.CalledProcessError as error:
+            raise ValueError("Manifest is incompatible with pinned loader: " + error.output.decode().strip()) from error
+    else:
+        result = subprocess.run(command, stdin=subprocess.DEVNULL, capture_output=True, text=True)
+        if result.returncode:
+            raise ValueError("Manifest is incompatible with pinned loader: " + result.stderr.strip())
     return provenance
 
 
@@ -90,19 +110,34 @@ def main():
     parser.add_argument("--execute", action="store_true", help="Requires agreed idle CPU slot")
     args = parser.parse_args()
     source = args.source.resolve(strict=True)
-    wpt = source / "testing/web-platform"
     output = args.output.resolve()
     if output == source or source in output.parents:
         parser.error("output must be outside source")
     if output.exists():
         parser.error("output must be a new directory")
-    validate_source(source)
+    if args.execute:
+        outside_source(source, args.resource_lock.resolve())
+        outside_source(source, args.tmp_root.resolve(strict=True))
+        if os.getuid() == 0:
+            parser.error("tests must run as a non-root owner")
+        return run_guarded(args.resource_lock.resolve(), output / "lifecycle.json",
+                           lambda processes: execute(args, parser, processes))
+    return execute(args, parser)
+
+
+def execute(args, parser, processes=None):
+    source = args.source.resolve(strict=True)
+    wpt = source / "testing/web-platform"
+    output = args.output.resolve()
+    if output == source or source in output.parents:
+        parser.error("output must be outside source")
+    validate_source(source, processes=processes)
     outside_source(source, args.manifest.resolve(strict=True))
     outside_source(source, args.resource_lock.resolve())
     outside_source(source, args.tmp_root.resolve(strict=True))
     if len(str(args.tmp_root.resolve())) > 20:
         parser.error("tmp-root must be short (at most 20 characters) for Unix sockets")
-    manifest_provenance = validate_manifest(args.manifest, git(source, "rev-parse", "HEAD:testing/web-platform/tests"), wpt / "tests", args.python.absolute())
+    manifest_provenance = validate_manifest(args.manifest, git(source, "rev-parse", "HEAD:testing/web-platform/tests", processes=processes), wpt / "tests", args.python.absolute(), processes=processes)
     if args.product == "chromium" and (not args.webdriver or args.metadata != "empty"):
         parser.error("Chromium requires --webdriver and --metadata empty")
     if args.product == "firefox" and not args.certutil:
@@ -120,7 +155,8 @@ def main():
     for tool in (args.webdriver, args.certutil, args.build_config, *args.component):
         if tool and not tool.is_file():
             parser.error(f"tool missing: {tool}")
-    output.mkdir(parents=True)
+    if not processes:
+        output.mkdir(parents=True)
     (output / "empty-metadata").mkdir()
     (output / "run-info").mkdir()
     (output / "run-info/mozinfo.json").write_text(json.dumps({
@@ -142,14 +178,14 @@ def main():
         cmd += ["--webdriver-binary", str(args.webdriver)]
     cmd += [args.product, *tests]
     evidence = {
-        "label": args.label, "source_head": git(source, "rev-parse", "HEAD"),
+        "label": args.label, "source_head": git(source, "rev-parse", "HEAD", processes=processes),
         "source_head_scope": "harness/test checkout; NOT a claim about the tested binary source revision",
         "binary_source_revision": args.binary_source_revision,
         "binary_source_revision_scope": "operator declaration from external build record; not inferred from harness HEAD",
         "declared_binary_build_mode": args.build_mode,
-        "wpt_upstream": PIN, "wpt_tree": git(source, "rev-parse", "HEAD:testing/web-platform/tests"),
-        "profiles_tree": git(source, "rev-parse", "HEAD:testing/profiles"),
-        "metadata_tree": git(source, "rev-parse", "HEAD:testing/web-platform/meta"),
+        "wpt_upstream": PIN, "wpt_tree": git(source, "rev-parse", "HEAD:testing/web-platform/tests", processes=processes),
+        "profiles_tree": git(source, "rev-parse", "HEAD:testing/profiles", processes=processes),
+        "metadata_tree": git(source, "rev-parse", "HEAD:testing/web-platform/meta", processes=processes),
         "manifest_provenance": manifest_provenance,
         "manifest_path": str(args.manifest.resolve()),
         "run_info_assumption": "noninstrumented stable release; confirm runtime build before interpreting expectations",
@@ -168,12 +204,14 @@ def main():
             "sha256": hashlib.file_digest(args.build_config.open("rb"), "sha256").hexdigest(),
         }
     evidence_path = output / "invocation.json"
-    evidence_path.write_text(json.dumps(evidence, indent=2) + "\n")
+    def save_evidence():
+        if processes:
+            processes.write_evidence(evidence_path, evidence)
+        else:
+            evidence_path.write_text(json.dumps(evidence, indent=2) + "\n")
+
+    save_evidence()
     if args.execute:
-        if os.getuid() == 0:
-            parser.error("tests must run as a non-root owner")
-        lock = args.resource_lock.open("a")
-        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         runtime = Path(tempfile.mkdtemp(prefix="wpt-", dir=args.tmp_root.resolve()))
         environment = {"HOME": str(Path.home()), "PATH": "/usr/local/bin:/usr/bin:/bin",
                        "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8", "TZ": "Europe/Berlin",
@@ -185,26 +223,23 @@ def main():
         evidence["environment"] = environment
         evidence["runtime_directory"] = str(runtime)
         try:
-            evidence["binary_sha256"] = hashlib.file_digest(binary.open("rb"), "sha256").hexdigest()
-            evidence["binary_version"] = subprocess.check_output([str(binary), "--version"], text=True, env=environment, stdin=subprocess.DEVNULL).strip()
+            evidence["binary_sha256"] = digest(binary, processes)
+            evidence["binary_version"] = processes.output([str(binary), "--version"], None, environment).decode().strip()
             for name in ("application.ini", "platform.ini", "libxul.so"):
                 component = binary.parent / name
                 if component.is_file():
-                    with component.open("rb") as stream:
-                        evidence.setdefault("components_sha256", {})[name] = hashlib.file_digest(stream, "sha256").hexdigest()
+                    evidence.setdefault("components_sha256", {})[name] = digest(component, processes)
             for component in args.component:
-                with component.open("rb") as stream:
-                    evidence.setdefault("components_sha256", {})[str(component.absolute())] = hashlib.file_digest(stream, "sha256").hexdigest()
+                evidence.setdefault("components_sha256", {})[str(component.absolute())] = digest(component, processes)
             for tool_name, tool in (("python", python), ("webdriver", args.webdriver), ("certutil", args.certutil)):
                 if tool:
-                    with tool.open("rb") as stream:
-                        evidence.setdefault("tools_sha256", {})[tool_name] = hashlib.file_digest(stream, "sha256").hexdigest()
-            evidence["python_packages"] = packages(python, environment)
-            evidence["harness_sha256"] = {name: digest(HERE / name) for name in ("run.py", "offline.py", "isolate.py", "prepare_manifest.py")}
+                    evidence.setdefault("tools_sha256", {})[tool_name] = digest(tool, processes)
+            evidence["python_packages"] = packages(python, environment, processes=processes)
+            evidence["harness_sha256"] = {name: digest(HERE / name) for name in ("run.py", "offline.py", "isolate.py", "prepare_manifest.py", "lifecycle.py")}
             hosts_command = [str(python), str(wpt / "tests/wpt"), "--venv", str(python.parent.parent),
                              "--skip-venv-setup", "make-hosts-file"]
             hosts = output / "hosts"
-            hosts.write_text(subprocess.check_output(hosts_command, cwd=wpt / "tests", env=environment, stdin=subprocess.DEVNULL, text=True))
+            hosts.write_text(processes.output(hosts_command, wpt / "tests", environment).decode())
             payload = {"command": cmd, "cwd": str(wpt / "tests"), "hosts": str(hosts),
                        "uid": os.getuid(), "gid": os.getgid(), "environment": environment,
                        "isolation_evidence": str(output / "isolation.json"),
@@ -215,18 +250,25 @@ def main():
                                 str(python), str(HERE / "isolate.py"), str(payload_path)]
             evidence["isolation_command"] = isolated_command
             evidence["executed"] = True
-            evidence_path.write_text(json.dumps(evidence, indent=2) + "\n")
+            save_evidence()
             with (output / "runner.log").open("w") as log:
-                result = subprocess.run(isolated_command, cwd=wpt / "tests", env=environment, stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT)
-            evidence["runner_exit"] = result.returncode
+                code = processes.run(isolated_command, wpt / "tests", environment, log)
+            evidence["runner_exit"] = code
+        except Cancelled:
+            evidence["cancelled"] = True
+            raise
         except BaseException as error:
             evidence["error"] = f"{type(error).__name__}: {error}"
             raise
         finally:
             evidence["runtime_cleanup"] = "retained for explicit owner cleanup"
-            evidence_path.write_text(json.dumps(evidence, indent=2) + "\n")
-            lock.close()
-    print(output / "invocation.json")
+            save_evidence()
+    try:
+        print(output / "invocation.json", flush=True)
+    except BaseException as error:
+        if processes:
+            processes.hold(error)
+        raise
     return evidence.get("runner_exit", 0)
 
 
