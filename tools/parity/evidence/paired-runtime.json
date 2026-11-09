@@ -1,0 +1,258 @@
+{
+  "schema": 1,
+  "scope": "Executed scratch predecessor, not the later reusable harness commit",
+  "date": "2026-11-09",
+  "run": "2026-11-09T07-45-21+0100",
+  "official_version": "159.0.1",
+  "custom_source_revision": "99cd4fee1a1ce503950d2f8b99167ef5b8ca5911",
+  "integration_merge_not_runtime_revision": "c362687876198f7717b9e06da0d8566e4b0c77cc",
+  "network": "unshare user+network namespace; lo + isolated multicast dummy192.0.2.1/32; only mDNS host route224.0.0.251/32; no default route",
+  "executed_harness_sha256": {
+    "runtime_checks.cjs": "294f18a807502b03f23e7d3096c4a6e4f4c557e41882dccee6c2d30e7d3e8ab9",
+    "run_bounded.py": "ac4fce2f136ecf1e42174218734bfe444ffb7b351a81d1b95228f090d22d877d",
+    "unsigned-fixture.xpi": "5339e494a081ba42ebc1e3dff5090bd839d38e51c8c2bb13b2c78d9c37d63249"
+  },
+  "results": {
+    "official": {
+      "schema": 1,
+      "time": "2026-11-09T06:45:21.145Z",
+      "checks": [
+        {
+          "name": "webrtc-local-data-transport",
+          "status": "pass",
+          "evidence": {
+            "diagnostics": {
+              "a": {
+                "connection": "connected",
+                "gathering": "complete"
+              },
+              "b": {
+                "connection": "connected",
+                "gathering": "complete"
+              },
+              "candidates": {
+                "a": 3,
+                "b": 3
+              }
+            },
+            "received": "fork-parity-transport"
+          }
+        },
+        {
+          "name": "indexeddb-transaction-after-reload",
+          "status": "pass",
+          "evidence": {
+            "value": "persistent-value"
+          }
+        },
+        {
+          "name": "unsigned-permanent-addon-rejected",
+          "status": "pass",
+          "evidence": {
+            "rejection": "ERROR_SIGNEDSTATE_REQUIRED"
+          }
+        },
+        {
+          "name": "runtime-configuration-inventory-collected",
+          "status": "pass",
+          "evidence": {
+            "constants": {
+              "MOZ_CRASHREPORTER": true,
+              "MOZ_OFFICIAL_BRANDING": true,
+              "MOZ_REQUIRE_SIGNING": true,
+              "MOZ_TELEMETRY_REPORTING": true,
+              "MOZ_UPDATER": true,
+              "MOZ_UPDATE_CHANNEL": "release"
+            },
+            "defaults": {
+              "browser.safebrowsing.malware.enabled": true,
+              "browser.safebrowsing.phishing.enabled": true,
+              "media.eme.enabled": false,
+              "media.gmp-widevinecdm.enabled": true,
+              "media.peerconnection.enabled": true,
+              "pdfjs.disabled": false,
+              "security.sandbox.content.level": 6,
+              "xpinstall.signatures.required": true
+            },
+            "effective": {
+              "browser.safebrowsing.malware.enabled": true,
+              "browser.safebrowsing.phishing.enabled": true,
+              "media.eme.enabled": false,
+              "media.gmp-widevinecdm.enabled": true,
+              "media.peerconnection.enabled": true,
+              "pdfjs.disabled": false,
+              "security.sandbox.content.level": 6,
+              "xpinstall.signatures.required": true
+            },
+            "provisioning": {
+              "MOZ_GOOGLE_LOCATION_SERVICE_API_KEY": "configured-unverified",
+              "MOZ_GOOGLE_SAFEBROWSING_API_KEY": "configured-unverified",
+              "MOZ_MOZILLA_API_KEY": "configured-unverified"
+            }
+          }
+        },
+        {
+          "name": "required-security-feature-configuration",
+          "status": "pass",
+          "evidence": {
+            "validated": [
+              "sandbox",
+              "extension-signatures",
+              "SafeBrowsing-preferences",
+              "PDF-preference",
+              "WebRTC-preference",
+              "updater/crashreporter/signature-constants"
+            ],
+            "limit": "Preference validation does not prove service operation; EME opt-in and unofficial distribution differences remain inventory only"
+          }
+        }
+      ],
+      "limits": [
+        "Headless Linux software rendering; no hardware, native AT or physical media device claim",
+        "No authenticated service operation, update application, crash submission or DRM playback",
+        "Fresh automation profile; remote.prefs.recommended=false; privileged context only for inspection"
+      ],
+      "version": "159.0.1"
+    },
+    "custom-99cd4fee1a1c": {
+      "schema": 1,
+      "time": "2026-11-09T06:45:35.153Z",
+      "checks": [
+        {
+          "name": "webrtc-local-data-transport",
+          "status": "pass",
+          "evidence": {
+            "diagnostics": {
+              "a": {
+                "connection": "connected",
+                "gathering": "complete"
+              },
+              "b": {
+                "connection": "connected",
+                "gathering": "complete"
+              },
+              "candidates": {
+                "a": 3,
+                "b": 3
+              }
+            },
+            "received": "fork-parity-transport"
+          }
+        },
+        {
+          "name": "indexeddb-transaction-after-reload",
+          "status": "pass",
+          "evidence": {
+            "value": "persistent-value"
+          }
+        },
+        {
+          "name": "unsigned-permanent-addon-rejected",
+          "status": "pass",
+          "evidence": {
+            "rejection": "ERROR_SIGNEDSTATE_REQUIRED"
+          }
+        },
+        {
+          "name": "runtime-configuration-inventory-collected",
+          "status": "pass",
+          "evidence": {
+            "constants": {
+              "MOZ_CRASHREPORTER": true,
+              "MOZ_OFFICIAL_BRANDING": false,
+              "MOZ_REQUIRE_SIGNING": true,
+              "MOZ_TELEMETRY_REPORTING": false,
+              "MOZ_UPDATER": true,
+              "MOZ_UPDATE_CHANNEL": "default"
+            },
+            "defaults": {
+              "browser.safebrowsing.malware.enabled": true,
+              "browser.safebrowsing.phishing.enabled": true,
+              "media.eme.enabled": false,
+              "media.gmp-widevinecdm.enabled": true,
+              "media.peerconnection.enabled": true,
+              "pdfjs.disabled": false,
+              "security.sandbox.content.level": 6,
+              "xpinstall.signatures.required": true
+            },
+            "effective": {
+              "browser.safebrowsing.malware.enabled": true,
+              "browser.safebrowsing.phishing.enabled": true,
+              "media.eme.enabled": false,
+              "media.gmp-widevinecdm.enabled": true,
+              "media.peerconnection.enabled": true,
+              "pdfjs.disabled": false,
+              "security.sandbox.content.level": 6,
+              "xpinstall.signatures.required": true
+            },
+            "provisioning": {
+              "MOZ_GOOGLE_LOCATION_SERVICE_API_KEY": "sentinel",
+              "MOZ_GOOGLE_SAFEBROWSING_API_KEY": "sentinel",
+              "MOZ_MOZILLA_API_KEY": "sentinel"
+            }
+          }
+        },
+        {
+          "name": "required-security-feature-configuration",
+          "status": "pass",
+          "evidence": {
+            "validated": [
+              "sandbox",
+              "extension-signatures",
+              "SafeBrowsing-preferences",
+              "PDF-preference",
+              "WebRTC-preference",
+              "updater/crashreporter/signature-constants"
+            ],
+            "limit": "Preference validation does not prove service operation; EME opt-in and unofficial distribution differences remain inventory only"
+          }
+        }
+      ],
+      "limits": [
+        "Headless Linux software rendering; no hardware, native AT or physical media device claim",
+        "No authenticated service operation, update application, crash submission or DRM playback",
+        "Fresh automation profile; remote.prefs.recommended=false; privileged context only for inspection"
+      ],
+      "version": "159.0.1"
+    }
+  },
+  "runtime_provenance": {
+    "official": {
+      "returncode": 0,
+      "elapsed_seconds": 14.008831781335175,
+      "existing_records": {
+        "platform.ini": "[Build]\nBuildID=20261102144711\nMilestone=159.0.1\nSourceRepository=https://hg.mozilla.org/releases/mozilla-release\nSourceStamp=7b34a03a910d0385299f4a9f27aa585a786862d8\n",
+        "firefox.tar.xz.sha256": "469ce17120018e1c95411d254cf3c5f8db2dd1768a7acde5a2a089b00072ac65  firefox.tar.xz\n"
+      }
+    },
+    "custom-99cd4fee1a1c": {
+      "returncode": 0,
+      "elapsed_seconds": 14.006987042725086,
+      "existing_records": {
+        "platform.ini": "[Build]\nBuildID=20261109005556\nMilestone=159.0.1\n",
+        "source-record.json": {
+          "source_revision": "99cd4fee1a1ce503950d2f8b99167ef5b8ca5911",
+          "base": "3220c312382756e0e263114f5afc6d9502b64519",
+          "wpt_tree": "d63660ce141f5584e0821d29aa2ef4e217e0f293",
+          "tracked_clean": true
+        },
+        "SHA256SUMS": "f45feab88a4a06c6ed494ff2f3977e627063548499440435d89ff7543f40c52a  firefox/application.ini\nbe2fdb8622b028a2248510793980e8b9294cee66d55ca2cb0a103610bd409ba4  firefox/browser/chrome/icons/default/default128.png\n1e8aea59ad881e31e351f7f38143293a45a8e7b916571f3eccce5e89844c1969  firefox/browser/chrome/icons/default/default16.png\n6b7170dd4e0ad2a095f11bb2d84c35bb7495e30e38218045eb85f81882f46a29  firefox/browser/chrome/icons/default/default32.png\n9ffbdd36b545394fca032ff753d5422c8092de97acd22ede27ea0b3b0dcb2359  firefox/browser/chrome/icons/default/default48.png\n060fd5cd86fda946ff84225f3035675e8031e25af55ef49c3bc16c779058fea9  firefox/browser/chrome/icons/default/default64.png\ne620ee582d91cca3c72bdaf51df4441417422977d4117b2a8dad4ec601ffcebb  firefox/browser/omni.ja\nb863884d14ed7b760af477bdc10e2de63dc6ef8601f07b7b7fb9834d6a348eeb  firefox/crashhelper\ne8227144c857f41cb032347bc50486cf72c458e3bcbb4f74f97991bec7e45f45  firefox/crashreporter\nef9fba57b2c3755b630b44ccfe703e2753d538fa50e3c52fc279c29e6db8200f  firefox/defaults/pref/channel-prefs.js\n621f575eaaf819dd0b18976c6a8a94d1caae95a9c748f4c9058a052395a4d173  firefox/dependentlibs.list\n4d7ef1ae93c1717e6be4acefe9b2b771177e95006693d5e1b5ffc1bbfd1239ca  firefox/firefox\n4d7ef1ae93c1717e6be4acefe9b2b771177e95006693d5e1b5ffc1bbfd1239ca  firefox/firefox-bin\n6d90152ee0d29e82fe2a87793af5aa4b7ad13e6538360889e141e81ed299ee8e  firefox/fonts/TwemojiMozilla.ttf\nd0cce01b76f8a7b4a3211a0bb92f8c6563300eb13e57f7102307ab2ee2c21b94  firefox/gfxtest\n1638fcb84690981542266bfe9933893ce769a57950719e923380a452262ca06c  firefox/gmp-clearkey/0.1/libclearkey.so\nb7d65e60cccb80ffb2e95b5ae7e355d2c8c37575e886eef4325ca04fa7ba68fc  firefox/gmp-clearkey/0.1/manifest.json\ncab5e9bc9511b0690e696b378efa6753705b1182660d9829f5b3dc9f0398e5cc  firefox/icons/updater.png\nd4af4abbdbc720b32cf66ff18262106788820db37ec479f62ab16248b3d85a3d  firefox/libfreeblpriv3.so\nf0aa57a08e5334309165be714fd4d9374328b039f1974f41a72bef1c9d1a6aa3  firefox/libgkcodecs.so\n4a43a3d28c884d388b569a61e5fb05806d4353d3f7919e9f58fef9a65fac642b  firefox/liblgpllibs.so\n72ba33a56d2fd00c51cbd08cdaebfcb7b154f5b74dbaf7f57a48d2facad89fe2  firefox/libmozavcodec.so\nb42709f648ba46703615e755097fd192ea8b49b893ea5c6d8e15aed1d6d8adb9  firefox/libmozavutil.so\nb939e074125628a7003ec74be7f5475e98ef8f8d36ced73689a13599bed838c6  firefox/libmozgtk.so\nd75f5f6e2f70ec424d5f449b1215e7bc31e803c3402a3d50725a4066fc0b932d  firefox/libmozinference.so\n318282b8cac5f01d08881321ab39e03e64dd82898a69fe4109d058366fd27f4f  firefox/libmozsandbox.so\n53a732d3dfb468b59f5f64481e44c781be766faf446844d5090a463cfcd8fe35  firefox/libmozsqlite3.so\n64f6e2c5c4676c5068225871085431b1c33082443d040af04ff8d83444b687ec  firefox/libmozwayland.so\n77784d608581b043fa2f9e379f683ff990570ee6ce4d106e9337c6f29553e0ad  firefox/libnspr4.so\n453a498acaf2e5ea11bb78799d36ef5d56549ee856027d079dd33085a6e4760c  firefox/libnss3.so\nb81e11cd4e933435ff88413a09d3f1bb42dbdf5e927a1cc6b7d454ef45f9b5ba  firefox/libnssutil3.so\n077ac0e3e090dd3d070a497f354f62fa718de4a19be287da5d9a188c950bc71c  firefox/libonnxruntime.so\n0aec2a114002623acee9b55c1bc27d1fe69308a31a6f4c4728418205ab295b9a  firefox/libplc4.so\n96ef7a634b49c0eb036e0766f925ef824504f773feb8cd6a3cb77b17b360cc89  firefox/libplds4.so\n7cc3e02a595085f79e7792e2c6c8f591c06869f67d8a94d6e9f2ced58ecb9f4c  firefox/libsmime3.so\nb49538196ae49d87319623d187f79c121b292cca55026cabe7621adb81569ec1  firefox/libsoftokn3.so\n4039fc0f0a39568eb92f432567b32cdb8374c3f21d9721a361a6551d8c67f568  firefox/libssl3.so\n5c96828d7a19546fbd15bc6d30cd1a041163aabea073867cdba90c5713a90d16  firefox/libxul.so\ned7701ddea98e33f22abc5065672ed180f0d4655ccb1f34d3dbe9091ab6513ac  firefox/omni.ja\nccb82599e3c992207ce6ee04c8a6dc6b1752412e8cbe4b7097e8c27caf8fc1d8  firefox/pingsender\n0d52138194105a19be1c8f2ef8d9d4703a5241e24974cac34aa7fbab27bbe83e  firefox/platform.ini\nf2ce2196dbc90f51b799dffce8d8dad997c3f1beadb273c3ba3cddb041e9d1f1  firefox/precomplete\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  firefox/removed-files\nc574f9f109b4dca4a6ab379167cd47a6bbee66c0a9640b1d19232da337202707  firefox/update-settings.ini\nb615613007102784076c7eb0e644156727a90aec4ce5267339aeb189dcb91821  firefox/updater\n19852825ca4c1e02a39299bcc7d5606bf2685a2fae2a8fe5d855e8d11936219f  firefox/updater.ini\n43f46fb407eaa959a0d16db74f0d143a98afcfbd62680e31b3d321537edf8d44  firefox.tar.xz\n8dc755410532f3d7a614eb4150c0f6712ff902098a326fd1b6d071074091001a  mozconfig\n4a297f607294745a8e1c17ff1056dc888a06df0b47cb38949fd87cdd0a8ee4db  patch.diff\n07097f344964c6be1c838052ed3a0bc69942106345af69078a6010140bb74fad  source-record.json\n3ce4420fb54ef544f3a0ef71bb25c2a05cc9f2e782e0d970a02f2187f953abf2  symbols/libfreebl3.so\n1978e3b340e5c8595dea28b2d2941f472c07edc4b7062346fb773fc04fec77f5  symbols/libfreeblpriv3.so\nc954ed10e58cd7f3bc9b6de6c4c5e5d1cae1c5a7406f0994a3d89e423d0ef86c  symbols/libgkcodecs.so\n5b75e485980607a2711c2f185a0a6b46e82e13b7e053f7c989d343c349b495a1  symbols/liblgpllibs.so\need877b3189137eec5d98ba017dfd2a0fe13ef89ccbff70be52d65d07f9394c7  symbols/libmozavcodec.so\nb30ae6f2c3411ff42f6120db24b97656529d140892f60cbe0a6a5ad8eb14714b  symbols/libmozavutil.so\ne817acddeb403116bdf88e0c5528df1a6cc4ea9d00f02acadf2e188d71465992  symbols/libmozgtk.so\n5172f7dd6901f5993459ad684b4532dfd3f05451c5c4a3814d10ba1563787475  symbols/libmozinference.so\n3cbaea89e1d2d166010b4c67df75da78e311d1e6c3602a7c4a905a840e25fa21  symbols/libmozsandbox.so\na9d26efc0ad506261cbcc0438c68ef67067af5bf672cf41c0342171c3d6f5934  symbols/libmozsqlite3.so\n47ae332457606839c332189e14a6285b0adebc594271553b15b0e2985b6fc20c  symbols/libmozwayland.so\ncf1a569a241063e753264fddd1d4131b7bc8679079f02d59594cefed470988f2  symbols/libnspr4.so\n8eba0715de060cca8c27bb4e43375a226e28a0d8283349ceb9e39cc6a2086921  symbols/libnss3.so\nde7dc8709cc772edd40852a2f54e73cb295e570015bb3101e80ee3fb0a614f55  symbols/libnssutil3.so\ne00160733aac74b1d8a6f555d2487dee6efe4afeb1fdee5b3c8581403ad7a899  symbols/libonnxruntime.so\n444875dfc55b1938504b974eb8a0461e1c27347a186e0d0dbbf9ef51f114e76d  symbols/libplc4.so\n67cf01c1ecdf54b7d89ca8ff164b046c0b4102431c4b2c8e27f6357991e8c073  symbols/libplds4.so\nea0f84b7f11d3c72933b7e9b536caa1b428db1070b71edb8133ab831c87e7367  symbols/libsmime3.so\na45752c951cd1ad48445beef49b2ce189d78acce2bf2b13857cd2426551bcb46  symbols/libsoftokn3.so\ndb3d35efa0de4fa3c26d047e032981c38a6210b2dc76f5c3beab47db7745bd88  symbols/libssl3.so\nb664f50faf650b9b35647d6082c432605ff93cc9494023594a9191f92f0ba713  symbols/libxul.so\n"
+      }
+    }
+  },
+  "resource_summary": {
+    "minimum_available_bytes": 10041364480,
+    "final_available_bytes": 10408693760,
+    "max_full_psi_avg10": 0.0,
+    "swaps_empty_all_samples": true,
+    "owned_profile_processes_remaining": [],
+    "post_run_lock_reacquired": true
+  },
+  "limits": [
+    "No online service request or provisioning",
+    "No signed update applied or intentional crash",
+    "No actual DRM playback",
+    "No hardware/native AT/other-platform coverage",
+    "No performance measurement"
+  ]
+}
