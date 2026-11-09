@@ -1,0 +1,20 @@
+{
+  "declared_at": "2026-11-09T01:25:45.639018+01:00",
+  "purpose": "One unscored complete suite per Chromium, official Firefox, and preserved source Firefox to validate the actual harness before the fixed five-round comparison",
+  "rounds": 1,
+  "excluded_from_comparison": true,
+  "run_script_sha256": "240aea4d001b12c926385a930f11a33e48b34b7c348382cdaeb86fc7485b24f0",
+  "start_condition": "swap-cleanup exit 0 and settled host; no concurrent build or WPT",
+  "subsequent_comparison_rounds": 5,
+  "retry_before_data": {
+    "at": "2026-11-09T01:42:59.219603+01:00",
+    "reason": "Isolate child environment and redact environment dumps; prior setup-only attempt retained privately and excluded",
+    "run_script_sha256": "e98c9b08913dbb87876156d345db3fc3f5eaeb785af0dbae1c3caf1090b786a3"
+  },
+  "collector_repair_before_scored_data": {
+    "at": "2026-11-09T01:49:51.303529+01:00",
+    "reason": "Preserve completed child output from actual mozharness shared paths; repeat validation to exercise collection end-to-end",
+    "previous_completed_chromium_result": "runs/2026-11-09T01-42-59+0100/01-chromium",
+    "run_script_sha256": "e48602037ba490432fead29a08751c0d4fbe5be601f2bb0749b7dba3889ffef5"
+  }
+}

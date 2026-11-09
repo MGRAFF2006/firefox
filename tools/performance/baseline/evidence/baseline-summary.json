@@ -1,0 +1,62 @@
+{
+  "rounds": 5,
+  "scores": {
+    "chromium": [
+      10.127,
+      9.924,
+      9.878,
+      10.021,
+      9.462
+    ],
+    "official-firefox": [
+      11.69,
+      11.679,
+      11.631,
+      11.59,
+      11.281
+    ],
+    "source-firefox": [
+      9.109,
+      8.941,
+      8.852,
+      8.949,
+      8.792
+    ]
+  },
+  "medians": {
+    "chromium": 9.924,
+    "official-firefox": 11.631,
+    "source-firefox": 8.941
+  },
+  "official_vs_chromium": {
+    "paired_ratios": [
+      1.1543398834798064,
+      1.176844014510278,
+      1.1774650739015995,
+      1.156571200478994,
+      1.1922426548298457
+    ],
+    "geometric_mean_ratio": 1.171406240804923,
+    "paired_bootstrap_95_percentile_interval": [
+      1.1593759903030965,
+      1.1832291389540188
+    ],
+    "method": "10000 paired-round resamples, geometric mean, seed 0; exploratory small-sample interval"
+  },
+  "source_vs_chromium": {
+    "paired_ratios": [
+      0.8994766465883282,
+      0.9009471987101976,
+      0.8961328204089897,
+      0.8930246482386986,
+      0.9291904459945043
+    ],
+    "geometric_mean_ratio": 0.903661873483416,
+    "paired_bootstrap_95_percentile_interval": [
+      0.8955103217380687,
+      0.9168054492515849
+    ],
+    "method": "10000 paired-round resamples, geometric mean, seed 0; exploratory small-sample interval"
+  },
+  "limits": "Shared VM, no GPU; one workload; five-round bootstrap interval is exploratory. Source ThinLTO/no-PGO configuration differs from official PGO/full-LTO. No source optimization gain is established."
+}

@@ -1,0 +1,32 @@
+{
+  "protocol": "All validation datasets were unscored under harness-validation-plan.json before the fixed five-round cohort. No scored-cohort runs were discarded. Original failed runs remain on the host.",
+  "validation": [
+    {
+      "dataset": "2026-11-09T01-35-01+0100",
+      "outcome": "Stopped during harness setup before a scored suite; inherited environment appeared in a harness log. Private log chmod600; omitted from publication. Replaced inherited child environment with minimal task environment and filtered harness environment dumps."
+    },
+    {
+      "dataset": "2026-11-09T01-42-59+0100",
+      "outcome": "Chromium suite completed, collector expected the wrong Raptor report location. Original output salvaged under resource lock. Fixed collector to move actual mozharness shared upload/report outputs after every invocation."
+    },
+    {
+      "dataset": "2026-11-09T01-49-51+0100",
+      "outcome": "Chromium collector passed. Official Firefox failed privileged trusted-script access, including harness retries. Added Firefox159-required MOZ_REMOTE_ALLOW_SYSTEM_ACCESS=1 only for isolated harness children; no OOM event found."
+    },
+    {
+      "dataset": "2026-11-09T01-56-46+0100",
+      "outcome": "Single official Firefox validation suite passed; diagnostic subset, excluded from comparison."
+    },
+    {
+      "dataset": "2026-11-09T01-59-25+0100",
+      "outcome": "Single source Firefox validation suite passed; diagnostic subset, excluded from comparison."
+    }
+  ],
+  "scored_dataset": "2026-11-09T02-03-12+0100",
+  "scored_runs_completed": 15,
+  "scored_run_failures": 0,
+  "outlier_exclusions": 0,
+  "summary_repair": "Original summary encountered the saved harness/ directory as if it were a browser run. Reproduced failure, narrowly skipped harness/, reran complete cohort summary. Executed runner snapshot and all scored results unchanged; snapshot retains original summary script. test_summary.py covers the actual directory-layout regression and contamination rejection.",
+  "build_wrapper_repair": "Native mach completed successfully; running wrapper had been edited and Bash reported EOF after mach returned. Wrapper exit2 retained. Final exec-based wrapper tested in isolated fake-mach harness (exit0/7); preserved package and source smoke both pass.",
+  "preservation_guard_repair": "Final publication review found that a strict HEAD==release-tag guard would reject the committed baseline tooling. Final preservation checks source equivalence outside tools/performance/baseline, records both release source and actual checkout revisions, and was tested in an isolated Git/package fixture: accepts baseline tooling commit, verifies hashes, rejects engine mutation before packaging. Existing sealed stock runtime was created with HEAD exactly at the tag; it remains unchanged."
+}

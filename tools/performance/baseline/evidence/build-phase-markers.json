@@ -1,0 +1,313 @@
+{
+  "type": "thread-markers",
+  "threadHandle": "t-0",
+  "friendlyThreadName": "",
+  "totalMarkerCount": 325269,
+  "filteredMarkerCount": 8,
+  "filters": {
+    "category": "Phases"
+  },
+  "byType": [
+    {
+      "markerName": "Phase",
+      "count": 8,
+      "isInterval": true,
+      "durationStats": {
+        "min": 242.8870000001043,
+        "max": 6349657.062,
+        "avg": 799545.89075,
+        "median": 4610.366000000387,
+        "p95": 6349657.062,
+        "p99": 6349657.062
+      },
+      "rateStats": {
+        "markersPerSecond": 0.00125093176669024,
+        "minGap": 298.8380000004545,
+        "avgGap": 913604.7011428571,
+        "maxGap": 6353869.931
+      },
+      "topMarkers": [
+        {
+          "handle": "m-3",
+          "label": "compile — CPU time: 10h45m (77.6%)",
+          "start": 13586.334,
+          "duration": 6349657.062,
+          "hasStack": false
+        },
+        {
+          "handle": "m-4",
+          "label": "misc — CPU time: 2m36s (64.7%)",
+          "start": 6367456.265,
+          "duration": 25707.169000000693,
+          "hasStack": false
+        },
+        {
+          "handle": "m-5",
+          "label": "configure — CPU time: 1m14s (28.7%)",
+          "start": 15.262,
+          "duration": 12261.179999999998,
+          "hasStack": false
+        },
+        {
+          "handle": "m-6",
+          "label": "teardown — CPU time:  ()",
+          "start": 6395248.17,
+          "duration": 4610.366000000387,
+          "hasStack": false
+        },
+        {
+          "handle": "m-7",
+          "label": "export — CPU time: 11.480s (57.5%)",
+          "start": 6380412.422,
+          "duration": 1985.0069999992847,
+          "hasStack": false
+        }
+      ]
+    }
+  ],
+  "byCategory": [
+    {
+      "categoryName": "Phases",
+      "categoryIndex": 1,
+      "count": 8,
+      "percentage": 100
+    }
+  ],
+  "flatMarkers": [
+    {
+      "handle": "m-5",
+      "name": "Phase",
+      "label": "configure — CPU time: 1m14s (28.7%)",
+      "start": 15.262,
+      "duration": 12261.179999999998,
+      "hasStack": false,
+      "category": "Phases",
+      "markerType": "Phase",
+      "fields": [
+        {
+          "key": "cpuTime",
+          "label": "CPU Time",
+          "value": 74119.99999984755,
+          "formattedValue": "1m14s"
+        },
+        {
+          "key": "cpuPercent",
+          "label": "CPU Percent",
+          "value": "28.7%",
+          "formattedValue": "28.7%"
+        }
+      ],
+      "data": {
+        "phase": "configure",
+        "cpuPercent": "28.7%",
+        "cpuTime": 74119.99999984755
+      }
+    },
+    {
+      "handle": "m-8",
+      "name": "Phase",
+      "label": "pre-export — CPU time: 2.390s (59.9%)",
+      "start": 12415.886,
+      "duration": 486.8329999999987,
+      "hasStack": false,
+      "category": "Phases",
+      "markerType": "Phase",
+      "fields": [
+        {
+          "key": "cpuTime",
+          "label": "CPU Time",
+          "value": 2390.0000003618516,
+          "formattedValue": "2.390s"
+        },
+        {
+          "key": "cpuPercent",
+          "label": "CPU Percent",
+          "value": "59.9%",
+          "formattedValue": "59.9%"
+        }
+      ],
+      "data": {
+        "phase": "pre-export",
+        "cpuPercent": "59.9%",
+        "cpuTime": 2390.0000003618516
+      }
+    },
+    {
+      "handle": "m-3",
+      "name": "Phase",
+      "label": "compile — CPU time: 10h45m (77.6%)",
+      "start": 13586.334,
+      "duration": 6349657.062,
+      "hasStack": false,
+      "category": "Phases",
+      "markerType": "Phase",
+      "fields": [
+        {
+          "key": "cpuTime",
+          "label": "CPU Time",
+          "value": 38714889.99999903,
+          "formattedValue": "10h45m"
+        },
+        {
+          "key": "cpuPercent",
+          "label": "CPU Percent",
+          "value": "77.6%",
+          "formattedValue": "77.6%"
+        }
+      ],
+      "data": {
+        "phase": "compile",
+        "cpuPercent": "77.6%",
+        "cpuTime": 38714889.99999903
+      }
+    },
+    {
+      "handle": "m-4",
+      "name": "Phase",
+      "label": "misc — CPU time: 2m36s (64.7%)",
+      "start": 6367456.265,
+      "duration": 25707.169000000693,
+      "hasStack": false,
+      "category": "Phases",
+      "markerType": "Phase",
+      "fields": [
+        {
+          "key": "cpuTime",
+          "label": "CPU Time",
+          "value": 155829.99999943914,
+          "formattedValue": "2m36s"
+        },
+        {
+          "key": "cpuPercent",
+          "label": "CPU Percent",
+          "value": "64.7%",
+          "formattedValue": "64.7%"
+        }
+      ],
+      "data": {
+        "phase": "misc",
+        "cpuPercent": "64.7%",
+        "cpuTime": 155829.99999943914
+      }
+    },
+    {
+      "handle": "m-7",
+      "name": "Phase",
+      "label": "export — CPU time: 11.480s (57.5%)",
+      "start": 6380412.422,
+      "duration": 1985.0069999992847,
+      "hasStack": false,
+      "category": "Phases",
+      "markerType": "Phase",
+      "fields": [
+        {
+          "key": "cpuTime",
+          "label": "CPU Time",
+          "value": 11479.99999919128,
+          "formattedValue": "11.480s"
+        },
+        {
+          "key": "cpuPercent",
+          "label": "CPU Percent",
+          "value": "57.5%",
+          "formattedValue": "57.5%"
+        }
+      ],
+      "data": {
+        "phase": "export",
+        "cpuPercent": "57.5%",
+        "cpuTime": 11479.99999919128
+      }
+    },
+    {
+      "handle": "m-9",
+      "name": "Phase",
+      "label": "libs — CPU time: 1.200s (18.2%)",
+      "start": 6393217.776,
+      "duration": 242.8870000001043,
+      "hasStack": false,
+      "category": "Phases",
+      "markerType": "Phase",
+      "fields": [
+        {
+          "key": "cpuTime",
+          "label": "CPU Time",
+          "value": 1200.0000004309186,
+          "formattedValue": "1.200s"
+        },
+        {
+          "key": "cpuPercent",
+          "label": "CPU Percent",
+          "value": "18.2%",
+          "formattedValue": "18.2%"
+        }
+      ],
+      "data": {
+        "phase": "libs",
+        "cpuPercent": "18.2%",
+        "cpuTime": 1200.0000004309186
+      }
+    },
+    {
+      "handle": "m-10",
+      "name": "Phase",
+      "label": "tools — CPU time: 7.960s (16.4%)",
+      "start": 6393516.614,
+      "duration": 1416.6219999995083,
+      "hasStack": false,
+      "category": "Phases",
+      "markerType": "Phase",
+      "fields": [
+        {
+          "key": "cpuTime",
+          "label": "CPU Time",
+          "value": 7959.999999600086,
+          "formattedValue": "7.960s"
+        },
+        {
+          "key": "cpuPercent",
+          "label": "CPU Percent",
+          "value": "16.4%",
+          "formattedValue": "16.4%"
+        }
+      ],
+      "data": {
+        "phase": "tools",
+        "cpuPercent": "16.4%",
+        "cpuTime": 7959.999999600086
+      }
+    },
+    {
+      "handle": "m-6",
+      "name": "Phase",
+      "label": "teardown — CPU time:  ()",
+      "start": 6395248.17,
+      "duration": 4610.366000000387,
+      "hasStack": false,
+      "category": "Phases",
+      "markerType": "Phase",
+      "fields": [],
+      "data": {
+        "phase": "teardown"
+      }
+    }
+  ],
+  "context": {
+    "selectedThreadHandle": "t-0",
+    "selectedThreads": [
+      {
+        "threadIndex": 0,
+        "name": "",
+        "processName": "mach"
+      }
+    ],
+    "resultThreadHandle": null,
+    "resultThreads": [],
+    "currentViewRange": null,
+    "rootRange": {
+      "start": 0,
+      "end": 6399858.537
+    },
+    "callTreeSummaryStrategy": "timing"
+  }
+}

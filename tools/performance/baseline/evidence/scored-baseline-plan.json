@@ -1,0 +1,16 @@
+{
+  "declared_at": "2026-11-09T02:03:12.825442+01:00",
+  "purpose": "Fixed scored baseline after unscored harness validation",
+  "rounds": 5,
+  "browsers": [
+    "chromium",
+    "official-firefox",
+    "source-firefox"
+  ],
+  "order": "rotate browser order by round; one complete cold suite per fresh process/profile",
+  "comparison": "paired Firefox score / Chromium score; geometric mean with 10000 paired bootstrap resamples, seed0; exploratory 95% percentile interval",
+  "run_script_sha256": "181b80ce6b0a26222c4b8b1e522886cfb83e29c92da159da56ced281ebd0e267",
+  "mozconfig_sha256": "8dc755410532f3d7a614eb4150c0f6712ff902098a326fd1b6d071074091001a",
+  "source_revision_external": "6181e6b5f28a8fbae1d5c3ef6f6626b5a2180213",
+  "exclusions": "profiling and predeclared unscored validation datasets; no within-cohort performance outlier filtering; failures retained"
+}
