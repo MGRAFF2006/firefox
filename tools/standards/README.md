@@ -149,3 +149,47 @@ setup attempts remain preserved in the program's runtime artifact archive
 (`wpt-runs`); this paragraph is a bounded summary, not a substitute for raw
 reports. See [standards acceptance issue8](https://github.com/MGRAFF2006/firefox/issues/8)
 and [program hub5](https://github.com/MGRAFF2006/firefox/issues/5).
+
+## Canonical execution lock custody
+
+`run.py --execute` keeps the existing self-locking `--resource-lock` interface.
+Do not wrap it in another holder of that same flock. A detached guardian process
+acquires the lock before execute-mode validation, probes or workload commands.
+The CLI waits for the guardian's actual exit status. A private liveness pipe
+cancels the guardian's work when the CLI exits or is killed, including SIGKILL;
+no caller-PID polling is used for liveness. The guardian enters its own session
+before acquiring the lock, so terminating the CLI process group does not kill it.
+
+The guardian is a Linux child subreaper. It discovers children from every thread
+of its own process and pinned descendants, validates ancestry while opening
+pidfds, and signals through those handles instead of unverified PID numbers.
+Orphaned and session-changing descendants remain attributable to this custodian.
+Exited pidfds are retired before more are opened. Normal completion, a nonzero
+command, launch failure or cancellation all require owned drainage/reaping
+before lock release. `lifecycle.json` records guardian PID/birth, lock inode,
+known owned identities, status and cleanup state. `release_ready` records a
+completed drain while the lock is still held; actual release follows successful
+recording and guardian exit, not the passage of a timeout.
+
+An ownership/discovery/pidfd/reap or reporting failure enters `ownership_hold`.
+The guardian retains the same lock, retries only owned drainage, and never turns
+a cleanup timeout or reporting exception into a successful release. It does not
+write to stderr in this path. If storage is permanently unavailable, fresh
+failure bytes cannot be guaranteed: the earlier incomplete record and retained
+custodian/lock remain the evidence boundary. Operators must inspect the recorded
+custodian and establish owned drainage before ending a held guardian. A caller
+or outer monitor must not blindly SIGKILL every descendant including that
+custodian merely because its cleanup deadline expired.
+
+This is a userspace caller-death guarantee. Deliberately killing the guardian
+itself, terminating all custodians, or a host failure is outside it; no process
+can preserve its own flock after all owning file descriptors are destroyed.
+Standalone `prepare_manifest.py` remains unchanged/self-locking and is not
+certified by the `run.py` execution contracts. Early temporary-directory
+ownership persistence is still the separately recorded issue #22; this repair
+does not claim to close it. The existing retained-runtime-directory policy is
+unchanged.
+
+The lifecycle checks use the actual canonical CLI with controlled source/WPT
+boundaries and tiny fake subprocess trees. They are not browser, namespace,
+manifest generation, standards, performance or release-default feature proof.
