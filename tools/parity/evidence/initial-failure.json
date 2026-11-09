@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "run": "2026-11-09T07-38-17+0100",
+  "network": "isolated user/network namespace with loopback only",
+  "custom_executed": false,
+  "interpretation": "Official WebRTC timeout in insufficient ICE environment; no fork regression conclusion",
+  "official": {
+    "schema": 1,
+    "time": "2026-11-09T06:38:18.992Z",
+    "checks": [
+      {
+        "name": "webrtc-local-data-transport",
+        "status": "fail",
+        "error": "{\"error\":\"local WebRTC timeout\"}\n+ actual - expected\n\n+ undefined\n- 'fork-parity-transport'\n"
+      },
+      {
+        "name": "indexeddb-transaction-after-reload",
+        "status": "pass",
+        "evidence": {
+          "value": "persistent-value"
+        }
+      },
+      {
+        "name": "unsigned-permanent-addon-rejected",
+        "status": "pass",
+        "evidence": {
+          "rejection": "ERROR_SIGNEDSTATE_REQUIRED"
+        }
+      },
+      {
+        "name": "runtime-configuration-inventory-collected",
+        "status": "pass",
+        "evidence": {
+          "constants": {
+            "MOZ_CRASHREPORTER": true,
+            "MOZ_OFFICIAL_BRANDING": true,
+            "MOZ_REQUIRE_SIGNING": true,
+            "MOZ_TELEMETRY_REPORTING": true,
+            "MOZ_UPDATER": true,
+            "MOZ_UPDATE_CHANNEL": "release"
+          },
+          "defaults": {
+            "browser.safebrowsing.malware.enabled": true,
+            "browser.safebrowsing.phishing.enabled": true,
+            "media.eme.enabled": false,
+            "media.gmp-widevinecdm.enabled": true,
+            "media.peerconnection.enabled": true,
+            "pdfjs.disabled": false,
+            "security.sandbox.content.level": 6,
+            "xpinstall.signatures.required": true
+          },
+          "effective": {
+            "browser.safebrowsing.malware.enabled": true,
+            "browser.safebrowsing.phishing.enabled": true,
+            "media.eme.enabled": false,
+            "media.gmp-widevinecdm.enabled": true,
+            "media.peerconnection.enabled": true,
+            "pdfjs.disabled": false,
+            "security.sandbox.content.level": 6,
+            "xpinstall.signatures.required": true
+          },
+          "provisioning": {
+            "MOZ_GOOGLE_LOCATION_SERVICE_API_KEY": "configured-unverified",
+            "MOZ_GOOGLE_SAFEBROWSING_API_KEY": "configured-unverified",
+            "MOZ_MOZILLA_API_KEY": "configured-unverified"
+          }
+        }
+      },
+      {
+        "name": "required-security-feature-configuration",
+        "status": "pass",
+        "evidence": {
+          "validated": [
+            "sandbox",
+            "extension-signatures",
+            "SafeBrowsing-preferences",
+            "PDF-preference",
+            "WebRTC-preference",
+            "updater/crashreporter/signature-constants"
+          ],
+          "limit": "Preference validation does not prove service operation; EME opt-in and unofficial distribution differences remain inventory only"
+        }
+      }
+    ],
+    "limits": [
+      "Headless Linux software rendering; no hardware, native AT or physical media device claim",
+      "No authenticated service operation, update application, crash submission or DRM playback",
+      "Fresh automation profile; remote.prefs.recommended=false; privileged context only for inspection"
+    ],
+    "version": "159.0.1"
+  }
+}
