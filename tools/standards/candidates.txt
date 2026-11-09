@@ -1,0 +1,3 @@
+# Source-supported upstream gaps, not confirmed fork regressions.
+css/css-anchor-position/transform-010.html
+css/css-anchor-position/transform-023.html
