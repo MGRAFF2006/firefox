@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import subprocess
 
-from run import PIN, digest, git, outside_source, packages, validate_source
+from run import PIN, digest, git, outside_source, packages, selection_paths, validate_manifest, validate_source
 
 
 def main():
@@ -14,11 +14,13 @@ def main():
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--python", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True, help="New runtime directory")
+    parser.add_argument("--selection", type=Path, required=True, help="Bound generation to selected WPT source files")
     parser.add_argument("--resource-lock", type=Path, required=True)
     args = parser.parse_args()
     source = args.source.resolve(strict=True)
     output = args.output.resolve()
     validate_source(source)
+    tests = selection_paths(args.selection, source / "testing/web-platform/tests")
     outside_source(source, output)
     outside_source(source, args.resource_lock.resolve())
     if output.exists():
@@ -30,17 +32,19 @@ def main():
         command = [str(args.python.absolute()), str(source / "testing/web-platform/tests/wpt"),
                    "--venv", str(args.python.absolute().parent.parent), "--skip-venv-setup",
                    "manifest", "--no-download", "--no-parallel", "--path", str(manifest),
-                   "--cache-root", str(output / "cache")]
+                   "--cache-root", str(output / "cache"),
+                   *[str(source / "testing/web-platform/tests" / test) for test in tests]]
         environment = {"PATH": "/usr/local/bin:/usr/bin:/bin", "HOME": str(Path.home()),
                        "LANG": "C.UTF-8", "PYTHONDONTWRITEBYTECODE": "1", "GIT_OPTIONAL_LOCKS": "0"}
         with (output / "manifest.log").open("w") as log:
             subprocess.run(command, env=environment, stdin=subprocess.DEVNULL,
                            stdout=log, stderr=subprocess.STDOUT, check=True)
         provenance = {"wpt_tree": git(source, "rev-parse", "HEAD:testing/web-platform/tests"),
-                      "wpt_upstream": PIN, "sha256": digest(manifest), "command": command,
+                      "wpt_upstream": PIN, "selected_source_files": tests, "sha256": digest(manifest), "command": command,
                       "generator_sha256": digest(Path(__file__)), "python_sha256": digest(args.python),
                       "packages": packages(args.python.absolute(), environment)}
         manifest.with_suffix(".provenance.json").write_text(json.dumps(provenance, indent=2) + "\n")
+        validate_manifest(manifest, provenance["wpt_tree"], source / "testing/web-platform/tests", args.python.absolute())
         print(manifest)
 
 

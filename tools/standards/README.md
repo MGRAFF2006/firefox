@@ -48,13 +48,19 @@ execution. Both operations take the shared failfast resource lock.
 
 ```sh
 python3 "$TOOLS/prepare_manifest.py" --source "$SOURCE" --python "$PYTHON" \
-  --output "$DATA/manifests-new" --resource-lock "$DATA/resource.lock"
+  --output "$DATA/manifests-new" --selection "$TOOLS/candidates.txt" \
+  --resource-lock "$DATA/resource.lock"
 ```
 
 Manifest generation uses the vendored `manifest --no-download --no-parallel`
-command with its explicit cache outside source. A sidecar records the generated
+command with its explicit cache outside source and only the selected source files.
+A full-tree generation attempt exceeded the coordinated 120-second bound before
+producing a manifest; that attempt was retained and no browser started. A sidecar records the generated
 manifest SHA-256, exact WPT tree, command, generator/Python hashes and installed
-package versions. Reuse requires the same WPT tree and matching hash. The test
+package versions. Reuse requires the same WPT tree, matching hash, selected-file coverage and a
+successful read-only load through the pinned WPT loader with URL base `/`. The
+offline runner also rejects every attempted update/rebuild rather than falling
+back to source-local metadata caches. The test
 runner uses `--no-manifest-update --no-manifest-download`, avoiding implicit
 source metadata caches. Previous manifests without this sidecar are not silently
 accepted; generate a fresh verified one during an approved slot.
@@ -87,7 +93,8 @@ only that invocation's directory after collecting needed diagnostics.
 
 ```sh
 python3 "$TOOLS/summarize.py" "$DATA/fork-run" --compare "$DATA/control-run"
-PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s "$TOOLS" -p 'test_*.py' -v
+WPT_TEST_ROOT="$SOURCE/testing/web-platform/tests" WPT_TEST_PYTHON="$PYTHON" \
+  python3 -B -m unittest discover -s "$TOOLS" -p 'test_*.py' -v
 ```
 
 A nonzero runner exit is retained, even when a complete report can be summarized.

@@ -42,12 +42,17 @@ def validate_source(source):
         raise ValueError("WPT/profile source has uncommitted changes")
 
 
-def validate_manifest(path, tree):
+def validate_manifest(path, tree, tests_root, python):
     provenance = json.loads(path.with_suffix(".provenance.json").read_text())
     if provenance["wpt_tree"] != tree or provenance["wpt_upstream"] != PIN:
         raise ValueError("manifest belongs to a different WPT tree")
     if digest(path) != provenance["sha256"]:
         raise ValueError("manifest hash differs from its provenance")
+    result = subprocess.run([str(python), "-B", str(HERE / "offline.py"),
+                             "--validate-manifest", str(tests_root), str(path)],
+                            stdin=subprocess.DEVNULL, capture_output=True, text=True)
+    if result.returncode:
+        raise ValueError("Manifest is incompatible with pinned loader: " + result.stderr.strip())
     return provenance
 
 
@@ -97,12 +102,14 @@ def main():
     outside_source(source, args.tmp_root.resolve(strict=True))
     if len(str(args.tmp_root.resolve())) > 20:
         parser.error("tmp-root must be short (at most 20 characters) for Unix sockets")
-    manifest_provenance = validate_manifest(args.manifest, git(source, "rev-parse", "HEAD:testing/web-platform/tests"))
+    manifest_provenance = validate_manifest(args.manifest, git(source, "rev-parse", "HEAD:testing/web-platform/tests"), wpt / "tests", args.python.absolute())
     if args.product == "chromium" and (not args.webdriver or args.metadata != "empty"):
         parser.error("Chromium requires --webdriver and --metadata empty")
     if args.product == "firefox" and not args.certutil:
         parser.error("Firefox requires --certutil for the WPT test CA")
     tests = selection_paths(args.selection, wpt / "tests")
+    if "selected_source_files" in manifest_provenance and not set(tests).issubset(manifest_provenance["selected_source_files"]):
+        parser.error("selection is outside prepared manifest coverage")
     binary = args.binary.resolve(strict=True)
     args.python.resolve(strict=True)
     # Preserve the venv launcher path; resolving its symlink loses venv discovery.

@@ -49,6 +49,21 @@ class ReportEvidenceTests(unittest.TestCase):
         self.assertEqual(summary["tests"], {"OK": 1, "PASS": 1})
         self.assertNotIn(("", "/example.any.worker.html", None), records)
 
+    def test_support_file_is_unresolved_beside_completed_test(self):
+        invocation = json.loads((self.path / "invocation.json").read_text())
+        invocation["selection"] = ["good.html", "helper.js"]
+        (self.path / "invocation.json").write_text(json.dumps(invocation))
+        (self.path / "MANIFEST.json").write_text(json.dumps({"items": {
+            "testharness": {"good.html": ["hash", [None, {}]]},
+            "support": {"helper.js": ["hash", []]},
+        }}))
+        self.report([{"test": "/good.html", "status": "OK", "subtests": []}])
+        _, summary, _ = read_run(self.path)
+        self.assertEqual(summary["unresolved_source_files"], ["helper.js"])
+        self.assertEqual(summary["expected_ids_by_source_file"], {"good.html": ["/good.html"], "helper.js": []})
+        self.assertEqual(summary["missing_expected_ids"], [])
+        self.assertEqual(summary["tests"], {"OK": 1})
+
     def test_legacy_missing_manifest_is_explicitly_unknown(self):
         self.report([{"test": "/example.html", "status": "OK", "subtests": []}])
         _, summary, _ = read_run(self.path)

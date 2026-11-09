@@ -19,7 +19,9 @@ def completeness(directory, invocation, results):
     file_ids = {}
     for selected in invocation["selection"]:
         ids = []
-        for tree in manifest["items"].values():
+        for item_type, tree in manifest["items"].items():
+            if item_type in ("support", "manual", "visual", "spec"):
+                continue
             node = tree
             for component in selected.split("/"):
                 if not isinstance(node, dict) or component not in node:

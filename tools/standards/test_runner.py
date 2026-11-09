@@ -1,5 +1,7 @@
 import builtins
 import json
+import os
+import sys
 from pathlib import Path
 import tempfile
 import types
@@ -15,18 +17,39 @@ class PreparationContracts(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
+        self.tests_root = Path(os.environ.get("WPT_TEST_ROOT", Path(__file__).resolve().parents[2] / "testing/web-platform/tests"))
+        self.python = Path(os.environ.get("WPT_TEST_PYTHON", sys.executable))
 
     def test_stale_tree_or_tampered_manifest_is_rejected(self):
+        if not (self.tests_root / "tools/manifest/manifest.py").is_file():
+            self.skipTest("requires vendored WPT loader; set WPT_TEST_ROOT and WPT_TEST_PYTHON")
         manifest = self.root / "MANIFEST.json"
-        manifest.write_text('{"version": 9}')
+        manifest.write_text('{"version": 9, "url_base": "/", "items": {}}')
         sidecar = manifest.with_suffix(".provenance.json")
         sidecar.write_text(json.dumps({"wpt_tree": "tree1", "wpt_upstream": PIN, "sha256": digest(manifest)}))
-        self.assertEqual(validate_manifest(manifest, "tree1")["wpt_tree"], "tree1")
+        self.assertEqual(validate_manifest(manifest, "tree1", self.tests_root, self.python)["wpt_tree"], "tree1")
         with self.assertRaisesRegex(ValueError, "different WPT tree"):
-            validate_manifest(manifest, "tree2")
+            validate_manifest(manifest, "tree2", self.tests_root, self.python)
         manifest.write_text('{"version": 8}')
         with self.assertRaisesRegex(ValueError, "hash differs"):
-            validate_manifest(manifest, "tree1")
+            validate_manifest(manifest, "tree1", self.tests_root, self.python)
+
+    def test_incompatible_manifests_cannot_trigger_loader_rebuild(self):
+        if not (self.tests_root / "tools/manifest/manifest.py").is_file():
+            self.skipTest("requires vendored WPT loader; set WPT_TEST_ROOT and WPT_TEST_PYTHON")
+        manifest = self.root / "MANIFEST.json"
+        for data in ({"version": 8, "url_base": "/", "items": {}},
+                     {"version": 9, "url_base": "/wrong/", "items": {}},
+                     {"version": 9, "url_base": "/", "items": {"unknown-kind": {}}}):
+            with self.subTest(data=data):
+                manifest.write_text(json.dumps(data))
+                expected = manifest.read_bytes()
+                manifest.with_suffix(".provenance.json").write_text(json.dumps({
+                    "wpt_tree": "tree1", "wpt_upstream": PIN, "sha256": digest(manifest)}))
+                with self.assertRaisesRegex(ValueError, "incompatible"):
+                    validate_manifest(manifest, "tree1", self.tests_root, self.python)
+                self.assertEqual(manifest.read_bytes(), expected)
+                self.assertFalse((self.root / ".cache").exists())
 
     def test_selection_cannot_escape_test_tree_or_duplicate_outcomes(self):
         tests = self.root / "tests"
