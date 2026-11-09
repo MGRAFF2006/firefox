@@ -3947,6 +3947,7 @@ void RestyleManager::DoReparentComputedStyleForFirstLine(
   ComputedStyle* oldStyle = aFrame->Style();
   Element* ourElement = isElement ? aFrame->GetContent()->AsElement() : nullptr;
   ComputedStyle* newParent = newParentStyle;
+  RefPtr<ComputedStyle> reparentedContentsStyle;
 
   if (!providerFrame) {
     // No providerFrame means we inherited from a display:contents thing.  Our
@@ -3960,6 +3961,26 @@ void RestyleManager::DoReparentComputedStyleForFirstLine(
     } else {
       providerFrame = nsIFrame::CorrectStyleParentFrame(
           aFrame->GetParent(), oldStyle->GetPseudoType());
+    }
+
+    AutoTArray<Element*, 4> contentsAncestors;
+    for (Element* ancestor =
+             aFrame->GetContent()->GetFlattenedTreeParentElement();
+         ancestor && Servo_Element_IsDisplayContents(ancestor);
+         ancestor = ancestor->GetFlattenedTreeParentElement()) {
+      contentsAncestors.AppendElement(ancestor);
+    }
+    MOZ_ASSERT(!contentsAncestors.IsEmpty());
+    // Contents styles need the same per-fragment inheritance as framed inlines.
+    // Keep them local because the element can also span subsequent lines.
+    ComputedStyle* layoutParent = providerFrame->Style();
+    newParent = layoutParent;
+    for (size_t i = contentsAncestors.Length(); i > 0; --i) {
+      Element* ancestor = contentsAncestors[i - 1];
+      reparentedContentsStyle = aStyleSet.ReparentComputedStyle(
+          ServoStyleSet::ResolveServoStyle(*ancestor), newParent, layoutParent,
+          ancestor);
+      newParent = reparentedContentsStyle;
     }
   }
   ComputedStyle* layoutParent = providerFrame->Style();

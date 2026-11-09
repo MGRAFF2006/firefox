@@ -1,0 +1,16 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Explicit first-line colors without contents ancestors</title>
+<style>
+.sample { color: red; font: 24px/1 monospace; width: 24ch; margin: 12px 0; }
+.first { color: green; }
+.blue { color: blue; }
+.ordinary { float: left; }
+.float-row { height: 24px; }
+</style>
+<p>First-line colors pass through contents ancestors only on the first line.</p>
+<div class="sample"><span class="first">First letter and more</span> words across lines.</div>
+<div class="sample"><span class="first">First letter and more</span> words across lines.</div>
+<div class="sample blue">First letter and more words across lines.</div>
+<div class="sample blue">First letter and more words across lines.</div>
+<div class="sample float-row"><span class="ordinary">Ordinary float</span></div>
