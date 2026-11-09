@@ -70,6 +70,7 @@ python3 "$TOOLS/run.py" --source "$SOURCE" --python "$PYTHON" \
   --product firefox --label source-stock --binary "$CONTROL_FIREFOX" \
   --certutil "$CERTUTIL" --webdriver "$GECKODRIVER" --metadata mozilla \
   --manifest "$DATA/manifests-new/MANIFEST.json" \
+  --selection "$TOOLS/candidates.txt" \
   --build-mode noninstrumented-release --tmp-root /tmp \
   --resource-lock "$DATA/resource.lock" --output "$DATA/plan-new"
 ```
@@ -77,7 +78,10 @@ python3 "$TOOLS/run.py" --source "$SOURCE" --python "$PYTHON" \
 This writes a plan and does not launch WPT or a browser. After reviewing it and
 receiving a slot, repeat with a fresh output directory and `--execute`. Repeat
 for official and fork runtimes with matching selections/metadata/environment.
-Use `--selection "$TOOLS/candidates.txt"` for the focused anchor pair.
+The prepare and plan commands above both use `candidates.txt` for the anchor pair.
+For smoke coverage, prepare a new manifest with `--selection "$TOOLS/smoke.txt"`
+and use that same selection in planning/execution; the default selection is smoke,
+and a candidate-only manifest intentionally cannot cover it.
 For Chromium use `--product chromium --metadata empty`, matching chromedriver,
 and the actual Chromium engine with `--component`. It remains a comparator,
 not the normative specification.
