@@ -95,6 +95,10 @@ directory and result JSON into its per-run directory before starting another
 browser. Uncollected shared output blocks a new run instead of being overwritten.
 The harness lock prevents concurrent invocations; the runner also rejects the
 named build session. Any external workloads must be recorded and considered.
+The runner validates the identities and SHA-256 hashes of every recorded runtime
+artifact before and after each invocation, including the engine libraries and
+configuration files. Cancellation terminates the owned workload process group
+before releasing the lock; the immediate workload also inherits the lock descriptor.
 
 Raw browser results, commands, versions, SHA-256 hashes, manifest hash, host details,
 load, and failures are retained under `ROOT/runs/BERLIN-TIMESTAMP` (with offset). Do not discard
@@ -123,6 +127,11 @@ full raw cohort, paired summary, runtime hashes, smoke results, and profile-quer
 exports. Run `python3 tools/performance/baseline/test_summary.py` for the summary
 layout regression and rejection of profiled, incomplete, failed, swapped, or
 changed-binary comparisons.
+Run `python3 tools/performance/baseline/test_runner.py` for engine-only mutation,
+missing-artifact, cancellation and inherited-lock regressions. These use isolated
+files and harmless processes, not browsers. The archived scored cohort retains
+its original executed harness snapshot; these later guard fixes do not rewrite
+that evidence or establish a new performance result.
 
 ## Feature/service limits
 

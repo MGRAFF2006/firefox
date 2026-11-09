@@ -14,6 +14,7 @@ import math
 import os
 import platform
 import shutil
+import signal
 import subprocess
 from pathlib import Path
 
@@ -44,6 +45,12 @@ def browser_metadata(binary):
         "sha256": digest(binary),
         "file_identity": file_identity(binary),
     }
+    artifacts = {
+        str(binary): {
+            "sha256": result["sha256"],
+            "file_identity": result["file_identity"],
+        }
+    }
     for name in (
         "firefox-bin",
         "libxul.so",
@@ -54,12 +61,92 @@ def browser_metadata(binary):
         artifact = binary.parent / name
         if artifact.is_file():
             result[name] = {"sha256": digest(artifact)}
+            artifacts[str(artifact)] = {
+                "sha256": result[name]["sha256"],
+                "file_identity": file_identity(artifact),
+            }
             if artifact.suffix == ".ini":
                 result[name]["content"] = artifact.read_text()
     source_record = binary.parent.parent / "source-revision.txt"
     if source_record.is_file():
         result["source_revision_external"] = source_record.read_text().strip()
+        artifacts[str(source_record)] = {
+            "sha256": digest(source_record),
+            "file_identity": file_identity(source_record),
+        }
+    result["runtime_artifacts"] = artifacts
     return result
+
+
+def changed_artifacts(metadata):
+    changed = []
+    for name, expected in metadata["runtime_artifacts"].items():
+        path = Path(name)
+        try:
+            if (
+                file_identity(path) != expected["file_identity"]
+                or digest(path) != expected["sha256"]
+            ):
+                changed.append(name)
+        except OSError:
+            changed.append(name)
+    return changed
+
+
+class WorkloadCancelled(Exception):
+    def __init__(self, signum):
+        self.signum = signum
+        super().__init__(f"Workload cancelled by signal {signum}")
+
+
+def run_workload(command, environment, log, lock_fd):
+    def cancel(signum, frame):
+        raise WorkloadCancelled(signum)
+
+    signals = (signal.SIGTERM, signal.SIGINT)
+    previous = {signum: signal.signal(signum, cancel) for signum in signals}
+    process = None
+    try:
+        process = subprocess.Popen(
+            command,
+            cwd=SOURCE,
+            env=environment,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            start_new_session=True,
+            pass_fds=(lock_fd,),
+        )
+        for line in process.stdout:
+            if "'env':" in line or '"env":' in line or "Using env:" in line:
+                log.write("[harness environment dump omitted]\n")
+            else:
+                log.write(line)
+            log.flush()
+        return process.wait()
+    finally:
+        # Finish the entire owned group before the parent's resource lock closes.
+        for signum in signals:
+            signal.signal(signum, signal.SIG_IGN)
+        try:
+            if process is not None:
+                try:
+                    os.killpg(process.pid, signal.SIGTERM)
+                except ProcessLookupError:
+                    pass
+                try:
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    pass
+                try:
+                    os.killpg(process.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                process.wait()
+                process.stdout.close()
+        finally:
+            for signum, handler in previous.items():
+                signal.signal(signum, handler)
 
 
 def swap_counters():
@@ -236,10 +323,7 @@ def main():
                     raise SystemExit(
                         "Uncollected mozharness output exists; preserve it before starting another run"
                     )
-                if (
-                    file_identity(binary)
-                    != metadata["browsers"][label]["file_identity"]
-                ):
+                if changed_artifacts(metadata["browsers"][label]):
                     raise SystemExit(f"Browser changed during the comparison: {binary}")
                 run = output / f"{round_number + 1:02d}-{label}"
                 run.mkdir()
@@ -289,32 +373,19 @@ def main():
                     "started": datetime.datetime.now(TIMEZONE).isoformat(),
                 }
                 (run / "invocation.json").write_text(json.dumps(before, indent=2))
+                cancelled_signal = None
                 with (run / "raptor.log").open("w") as log:
-                    with subprocess.Popen(
-                        command,
-                        cwd=SOURCE,
-                        env=environment,
-                        stdout=subprocess.PIPE,
-                        stderr=subprocess.STDOUT,
-                        text=True,
-                    ) as result:
-                        for line in result.stdout:
-                            if (
-                                "'env':" in line
-                                or '"env":' in line
-                                or "Using env:" in line
-                            ):
-                                log.write("[harness environment dump omitted]\n")
-                            else:
-                                log.write(line)
-                            log.flush()
-                        result.wait()
+                    try:
+                        exit_code = run_workload(
+                            command, environment, log, lock.fileno()
+                        )
+                    except WorkloadCancelled as error:
+                        cancelled_signal = error.signum
+                        exit_code = 128 + error.signum
                 collect_artifacts(run)
                 swap_after = swap_counters()
-                binary_changed = (
-                    file_identity(binary)
-                    != metadata["browsers"][label]["file_identity"]
-                )
+                runtime_changes = changed_artifacts(metadata["browsers"][label])
+                binary_changed = bool(runtime_changes)
                 swap_delta = {
                     key: swap_after[key] - before["swap_counters"][key]
                     for key in swap_after
@@ -322,17 +393,19 @@ def main():
                 (run / "exit.json").write_text(
                     json.dumps(
                         {
-                            "exit_code": result.returncode,
+                            "exit_code": exit_code,
+                            "cancelled_signal": cancelled_signal,
                             "finished": datetime.datetime.now(TIMEZONE).isoformat(),
                             "loadavg": Path("/proc/loadavg").read_text(),
                             "cpu_stat": Path("/proc/stat").read_text(),
                             "swap_io_delta_pages": swap_delta,
                             "binary_changed": binary_changed,
+                            "changed_artifacts": runtime_changes,
                         },
                         indent=2,
                     )
                 )
-                if result.returncode:
+                if exit_code:
                     raise SystemExit(f"Failed run retained at {run}")
                 if binary_changed:
                     raise SystemExit(f"Browser changed during this run: {run}")
