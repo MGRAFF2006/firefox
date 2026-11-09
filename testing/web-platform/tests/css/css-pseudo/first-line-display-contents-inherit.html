@@ -1,0 +1,21 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>First-line inheritance through display:contents</title>
+<link rel="help" href="https://drafts.csswg.org/css-pseudo-4/#first-line-inheritance">
+<link rel="help" href="https://drafts.csswg.org/css-display-3/#valdef-display-contents">
+<link rel="match" href="first-line-display-contents-inherit-ref.html">
+<style>
+.sample { color: red; font: 24px/1 monospace; width: 24ch; margin: 12px 0; }
+.line::first-line { color: green; }
+.contents { display: contents; }
+em { font-style: normal; }
+.blue { color: blue; }
+.ordinary { float: left; }
+.float-row { height: 24px; }
+</style>
+<p>First-line colors pass through contents ancestors only on the first line.</p>
+<div class="sample line"><span class="contents">First letter and more words across lines.</span></div>
+<div id="nested" class="sample line"><span class="contents"><span class="contents"><em>First letter and more words across lines.</em></span></span></div>
+<div class="sample line"><span class="contents blue"><span class="contents"><em>First letter and more words across lines.</em></span></span></div>
+<div class="sample line"><span class="contents"><em class="blue">First letter and more words across lines.</em></span></div>
+<div class="sample line float-row"><span class="contents"><span class="ordinary">Ordinary float</span></span></div>
