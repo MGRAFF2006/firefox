@@ -77,11 +77,19 @@ source inputs, which have separate revision/tracked-diff fields. Records use
 atomic replacement so readers see complete JSON. `preparing` or `running` without `finished`
 indicates incomplete evidence, including an uncatchable launcher termination.
 SIGINT/SIGTERM handling starts before lock acquisition and remains active through
-final evidence and lock release. Toolchain/Git probes and the command all run in
-supervised process groups; cancellation forwards the signal and escalates to
-SIGKILL after five seconds. On every group leader exit, including ordinary
-nonzero failure, the Linux launcher kills and reaps remaining group descendants
-before releasing its lock. The original command exit status is preserved. Cancellation exit codes are 128 plus the received signal.
+final evidence and descendant cleanup. Toolchain/Git probes and the command all run in
+a Linux owned-descendant supervisor (Python pidfd APIs and readable procfs
+required). It walks only the dedicated launcher’s children and their children,
+including thread-created children, validating ancestry while holding pidfds.
+It never selects processes by name, UID, session or a global process scan.
+Cancellation forwards the signal on the next supervision tick and escalates
+to SIGKILL after five seconds. On every leader exit, including ordinary nonzero
+failure or supervisor exceptions, it kills and reaps owned descendants across
+PGIDs and sessions. Subreaper adoption catches even descendants that fork and
+change groups between observations. Repeated discovery, killing and reaping
+finish before evidence finalization and lock release; discovery errors retain
+the lock and retry. This assumes a dedicated launcher that creates no unrelated
+children; it is not a security boundary against hostile credential/procfs changes. The original command exit status is preserved. Cancellation exit codes are 128 plus the received signal.
 Processes blocked in uninterruptible kernel I/O can delay reaping; the lock stays
 held rather than admitting another heavy operation. The launcher cannot recover
 from SIGKILL or host loss. Child RSS is
@@ -201,3 +209,26 @@ cache experiment needs deliberate configuration plus before/after statistics.
 Primary references: Mozilla's [Mach build targets](https://firefox-source-docs.mozilla.org/python/mozbuild.html#mozbuild.build_commands.build),
 [objdir/configuration guidance](https://firefox-source-docs.mozilla.org/setup/configuring_build_options.html#building-with-an-objdir),
 and [sccache Rust limitations](https://github.com/mozilla/sccache/blob/main/docs/Rust.md).
+
+
+Nested process-group regression (2026-11-09): `profileserver.py` leaves
+`FirefoxRunner` process arguments at mozprocess's `ignore_children=False`;
+`Process.__init__` uses `os.setpgid(0, 0)`. Such foreground descendants are
+legitimate, so original-PGID cleanup is insufficient. This is distinct from
+`MozbuildObject._run_make`, which explicitly passes `ignore_children=True`.
+No training or browser execution is authorized or performed by these checks.
+
+`verify.py --source SOURCE` also exercises a new-PGID child spawning a
+new-session, TERM-resistant grandchild, with probe cancellation, command failure,
+SIGTERM and an injected one-shot supervisor exception. Each test uses its own
+temporary root, independently probes the launcher lock, records PID/procfs
+identity evidence and checks all fixture descendants are reaped. A sibling
+sentinel belongs to the test parent and must survive launcher cleanup. Fixture
+cleanup also handles older broken runners. The original same-group checks and
+readiness/config/path/environment guards remain. Git revision/diff replies are
+fixture substitutions to avoid scanning/hashing the large source checkout;
+tool probes, command processes, cancellation, locks and evidence are real.
+The injected exception replaces one sleep after the fixture becomes ready.
+`--lifecycle-case nested-failure --runner OLD_RUNNER` reproduces the old leak.
+These checks do not verify real Git fingerprint generation, kernel D-state,
+SIGKILL/host-loss recovery, browsers, compilers or training workloads.

@@ -17,7 +17,7 @@ import time
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--source', type=Path, required=True)
 parser.add_argument('--runner', type=Path, default=Path(__file__).with_name('run.py'))
-parser.add_argument('--lifecycle-case', choices=('probe', 'failure'))
+parser.add_argument('--lifecycle-case', choices=('probe', 'failure', 'nested-probe', 'nested-failure', 'nested-term', 'nested-error'))
 args = parser.parse_args()
 source = args.source.resolve()
 runner = args.runner.resolve()
@@ -50,24 +50,62 @@ def lifecycle_regression(root, base, case):
     ready_path = fixture / 'allow-exit'
     tool = root / 'state/clang/bin/clang'
     original_tool = tool.read_bytes()
+    nested = case.startswith('nested-')
+    mode = case.removeprefix('nested-')
     child = ('import os,pathlib,signal,time; '
              'signal.signal(signal.SIGTERM,signal.SIG_IGN); '
              f'pathlib.Path({str(pid_path)!r}).write_text(str(os.getpid())); '
              'time.sleep(60)')
     command = [sys.executable, '-c', 'raise RuntimeError("command must not run")']
-    if case == 'probe':
+    middle_path = fixture / 'middle.pid'
+    if nested:
+        leaf = 'import os; os.setsid(); ' + child
+        child = ('import os,pathlib,subprocess,sys,time; '
+                 f'pathlib.Path({str(middle_path)!r}).write_text(str(os.getpid())); '
+                 f'subprocess.Popen([sys.executable,"-c",{leaf!r}]); '
+                 'time.sleep(60)')
+    if mode == 'probe' and not nested:
         tool.write_text('#!' + sys.executable + '\n' + child + '\n')
     else:
         parent = ('import os,pathlib,subprocess,sys,time\n'
                   f'pathlib.Path({str(group_path)!r}).write_text(str(os.getpgrp()))\n'
-                  f'subprocess.Popen([sys.executable,"-c",{child!r}])\n'
+                  f'subprocess.Popen([sys.executable,"-c",{child!r}], process_group={0 if nested else None!r})\n'
                   f'while not pathlib.Path({str(ready_path)!r}).exists(): time.sleep(.01)\n'
                   'raise RuntimeError("foreground command failed before waiting for child")\n')
+        if nested:
+            parent = 'import signal; signal.signal(signal.SIGTERM,signal.SIG_IGN)\n' + parent
         command = [sys.executable, '-c', parent]
+        if mode == 'probe':
+            tool.write_text('#!' + sys.executable + '\n' + parent)
+            command = [sys.executable, '-c', 'raise RuntimeError("command must not run")']
+    launch_base = base
+    if mode == 'error':
+        wrapper = fixture / 'launcher.py'
+        wrapper.write_text(
+            'import runpy,sys,time,pathlib\n'
+            f'm=runpy.run_path({str(runner)!r})\n'
+            'output=m["ProcessSupervisor"].output\n'
+            'def fixture_output(self, command, *args):\n'
+            ' if command[:2] == ["git", "rev-parse"]: return b"fixture-revision\\n"\n'
+            ' if command[:2] == ["git", "diff"]: return b""\n'
+            ' return output(self, command, *args)\n'
+            'm["ProcessSupervisor"].output=fixture_output\n'
+            'sleep=time.sleep\n'
+            'def fail_once(delay):\n'
+            f' if pathlib.Path({str(ready_path)!r}).exists():\n'
+            '  time.sleep=sleep\n'
+            '  raise RuntimeError("injected supervisor failure")\n'
+            ' sleep(delay)\n'
+            'time.sleep=fail_once\n'
+            'try: sys.exit(m["main"]())\n'
+            'except (OSError,ValueError,KeyError,TypeError,m["subprocess"].CalledProcessError) as error:\n'
+            ' print(f"iteration: {error}",file=sys.stderr); sys.exit(1)\n')
+        launch_base = [base[0], str(wrapper), *base[2:]]
+    sentinel = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(60)'])
     process = None
     try:
         with (fixture / 'stdout').open('w+') as stdout, (fixture / 'stderr').open('w+') as stderr:
-            process = subprocess.Popen([*base, '--execute', 'check', '--', *command],
+            process = subprocess.Popen([*launch_base, '--execute', 'check', '--', *command],
                                        stdout=stdout, stderr=stderr, start_new_session=True)
             deadline = time.monotonic() + 10
             while not pid_path.exists():
@@ -76,31 +114,58 @@ def lifecycle_regression(root, base, case):
                 time.sleep(.01)
             pid = int(pid_path.read_text())
             assert_lock_held(root)
-            if case == 'probe':
+            before = Path(f'/proc/{pid}/stat').read_text()
+            print(json.dumps(dict(case=case, stage='before', leaf_stat=before.strip(),
+                                  middle_stat=Path(f'/proc/{int(middle_path.read_text())}/stat').read_text().strip() if middle_path.exists() else None,
+                                  lock='busy', sentinel_pid=sentinel.pid)), flush=True)
+            if mode in ('probe', 'term'):
                 process.send_signal(signal.SIGTERM)
                 time.sleep(.1)
                 assert process.poll() is None, 'Probe cancellation exited before stubborn probe cleanup'
                 assert_lock_held(root)
             else:
                 ready_path.touch()
+            samples = 0
+            while process.poll() is None:
+                with (root / 'resource.lock').open('a') as lock:
+                    try:
+                        fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    except BlockingIOError:
+                        samples += 1
+                    else:
+                        print(json.dumps(dict(case=case, stage='lock-acquired',
+                                              leaf_exists=Path(f'/proc/{pid}').exists())), flush=True)
+                        assert_gone(pid)
+                assert time.monotonic() < deadline + 5
+                time.sleep(.005)
             process.wait(timeout=10)
-            expected = 143 if case == 'probe' else 1
+            assert sentinel.poll() is None, 'Launcher signalled unrelated sibling sentinel'
+            expected = 143 if mode in ('probe', 'term') else 1
             assert process.returncode == expected, (case, process.returncode)
             assert_gone(pid)
+            if middle_path.exists():
+                assert_gone(int(middle_path.read_text()))
             stdout.seek(0)
             evidence = json.loads((Path(stdout.read().strip()) / 'invocation.json').read_text())
             assert evidence['finished'] and evidence['exit_code'] == expected
-            if case == 'probe':
+            if mode in ('probe', 'term'):
                 assert evidence['status'] == 'cancelled'
                 assert evidence['cancelled_signal'] == signal.SIGTERM
-                assert evidence['executed'] is False
-                assert evidence['active_command'] == [str(tool), '--version']
+                assert evidence['executed'] is (mode != 'probe')
+                if mode == 'probe':
+                    assert evidence['active_command'] == [str(tool), '--version']
             else:
-                assert evidence['status'] == 'completed'
+                assert evidence['status'] == ('launcher_error' if mode == 'error' else 'completed')
                 assert evidence['executed'] is True
             with (root / 'resource.lock').open('a') as lock:
                 fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            print(json.dumps(dict(case=case, pid=pid, before_stat=before.strip(),
+                                  lock_busy_samples=samples, exit_code=process.returncode,
+                                  status=evidence['status'], owned_after='gone',
+                                  sentinel='alive', lock_after='acquired')))
     finally:
+        sentinel.kill()
+        sentinel.wait()
         if process is not None:
             try:
                 os.killpg(process.pid, signal.SIGKILL)
@@ -110,6 +175,11 @@ def lifecycle_regression(root, base, case):
         if group_path.exists():
             try:
                 os.killpg(int(group_path.read_text()), signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+        if middle_path.exists():
+            try:
+                os.kill(int(middle_path.read_text()), signal.SIGKILL)
             except ProcessLookupError:
                 pass
         if pid_path.exists():
@@ -122,12 +192,30 @@ def lifecycle_regression(root, base, case):
                 os.waitpid(pid, 0)
             except ChildProcessError:
                 pass
+        while True:
+            try:
+                os.waitpid(-1, 0)
+            except ChildProcessError:
+                break
         tool.write_bytes(original_tool)
 
 
 with tempfile.TemporaryDirectory(prefix='firefox-iteration-') as directory:
     root = Path(directory)
-    base = [sys.executable, str(runner), '--source', str(source), '--root', str(root)]
+    fixture_runner = root / 'runner.py'
+    fixture_runner.write_text(
+        'import runpy,sys\n'
+        f'm=runpy.run_path({str(runner)!r})\n'
+        'output=m["ProcessSupervisor"].output\n'
+        'def fixture_output(self, command, *args):\n'
+        ' if command[:2] == ["git", "rev-parse"]: return b"fixture-revision\\n"\n'
+        ' if command[:2] == ["git", "diff"]: return b""\n'
+        ' return output(self, command, *args)\n'
+        'm["ProcessSupervisor"].output=fixture_output\n'
+        'try: sys.exit(m["main"]())\n'
+        'except (OSError,ValueError,KeyError,TypeError,m["subprocess"].CalledProcessError) as error:\n'
+        ' print(f"iteration: {error}",file=sys.stderr); sys.exit(1)\n')
+    base = [sys.executable, str(fixture_runner), '--source', str(source), '--root', str(root)]
 
     def call(*options, success=True, message=None, env=None):
         run = subprocess.run([*base, *options], capture_output=True, text=True, env=env)
@@ -140,7 +228,7 @@ with tempfile.TemporaryDirectory(prefix='firefox-iteration-') as directory:
         plan = json.loads(call(target).stdout)
         assert plan['command'] == ['./mach', '--no-interactive', 'build', *suffix]
         assert plan['executed'] is False and plan['readiness'].startswith('blocked:')
-    assert not list(root.iterdir()), 'Plan must not write into build root'
+    assert list(root.iterdir()) == [fixture_runner], 'Plan must not write into build root'
     call('--execute', 'binaries', success=False, message='baseline-complete.json')
     marker = root / 'baseline-complete.json'
     marker.write_text('[]')
@@ -266,6 +354,8 @@ with tempfile.TemporaryDirectory(prefix='firefox-iteration-') as directory:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
     lifecycle_regression(root, base, 'probe')
     lifecycle_regression(root, base, 'failure')
+    for case in ('nested-probe', 'nested-failure', 'nested-term', 'nested-error'):
+        lifecycle_regression(root, base, case)
     assert config.read_bytes() == original
 print('PASS: plans, closed hold, malformed/config/artifact guards, lock exclusion/release, real check exit/log/time evidence, clean stable environment, launcher failure evidence, process-group cancellation/reaping, blocked-probe cancellation, failed-command descendant cleanup, unchanged source config')
 print('No Firefox compile or browser run; toolchain version/hash paths use explicit isolated fixture executables.')

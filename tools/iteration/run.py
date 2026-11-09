@@ -14,6 +14,7 @@ from pathlib import Path
 import platform
 import pwd
 import resource
+import select
 import shutil
 import signal
 import subprocess
@@ -56,12 +57,21 @@ class Cancelled(Exception):
     pass
 
 
+def process_exited(fd):
+    poll = select.poll()
+    poll.register(fd, select.POLLIN)
+    return bool(poll.poll(0))
+
+
 class ProcessSupervisor:
     def __init__(self):
         self.cancelled = None
         self.child = None
+        self.owned = {}
 
     def __enter__(self):
+        if not hasattr(os, "pidfd_open") or not hasattr(signal, "pidfd_send_signal"):
+            raise ValueError("Linux Python pidfd APIs are required")
         # Adopt orphaned grandchildren so every owned process group can be reaped.
         libc = ctypes.CDLL(None, use_errno=True)
         if libc.prctl(36, 1, 0, 0, 0) != 0:  # PR_SET_CHILD_SUBREAPER
@@ -80,14 +90,60 @@ class ProcessSupervisor:
     def cancel(self, signum, frame):
         if self.cancelled is None:
             self.cancelled = signum
-        self.signal_group(signum)
 
-    def signal_group(self, signum):
-        if self.child is not None:
+    def discover(self):
+        # Only walk children of this dedicated launcher and pinned descendants.
+        parents = [os.getpid()]
+        seen = set()
+        while parents:
+            parent = parents.pop()
+            if parent in seen:
+                continue
+            seen.add(parent)
+            if parent != os.getpid() and process_exited(self.owned[parent]):
+                continue
             try:
-                os.killpg(self.child.pid, signum)
-            except ProcessLookupError:
-                pass
+                tasks = list(Path(f"/proc/{parent}/task").iterdir())
+            except FileNotFoundError:
+                continue
+            for task in tasks:
+                try:
+                    children = (task / "children").read_text().split()
+                except (FileNotFoundError, ProcessLookupError):
+                    continue
+                for value in children:
+                    pid = int(value)
+                    if pid not in self.owned:
+                        fd = None
+                        try:
+                            fd = os.pidfd_open(pid)
+                            stat = Path(f"/proc/{pid}/stat").read_text().rsplit(")", 1)[1].split()
+                        except OSError as error:
+                            if fd is not None:
+                                os.close(fd)
+                            if isinstance(error, (FileNotFoundError, ProcessLookupError)):
+                                continue
+                            raise
+                        # A pidfd prevents signalling a reused PID. Validate ancestry
+                        # after opening it, while the owning parent is still alive.
+                        valid = int(stat[1]) == parent and not process_exited(fd)
+                        if parent != os.getpid():
+                            valid = valid and not process_exited(self.owned[parent])
+                        if not valid:
+                            os.close(fd)
+                            continue
+                        self.owned[pid] = fd
+                    parents.append(pid)
+
+    def signal_owned(self, signum):
+        try:
+            self.discover()
+        finally:
+            for fd in self.owned.values():
+                try:
+                    signal.pidfd_send_signal(fd, signum)
+                except ProcessLookupError:
+                    pass
 
     def check_cancelled(self):
         if self.cancelled is not None:
@@ -96,13 +152,35 @@ class ProcessSupervisor:
     def cleanup(self):
         if self.child is None:
             return
-        self.signal_group(signal.SIGKILL)
-        self.child.wait()
+        # Killing parents reparents even unobserved/session-changing descendants
+        # to this subreaper. Keep the lock until adoption, death and reaping finish.
+        warned = False
         while True:
             try:
-                os.waitpid(-self.child.pid, 0)
-            except ChildProcessError:
+                self.signal_owned(signal.SIGKILL)
+            except OSError as error:
+                if not warned:
+                    print(f"Cleanup discovery failed; retaining lock and retrying: {error}", file=sys.stderr)
+                    warned = True
+                time.sleep(0.05)
+                continue
+            self.child.wait()
+            children = False
+            while True:
+                try:
+                    pid, _ = os.waitpid(-1, os.WNOHANG)
+                except ChildProcessError:
+                    break
+                if pid == 0:
+                    children = True
+                    break
+            for pid, fd in list(self.owned.items()):
+                if process_exited(fd):
+                    os.close(fd)
+                    del self.owned[pid]
+            if not children and not self.owned:
                 break
+            time.sleep(0.01)
         self.child = None
 
     def run(self, command, source, env, log, lock_fd):
@@ -113,12 +191,13 @@ class ProcessSupervisor:
                                           start_new_session=True)
             deadline = None
             while self.child.poll() is None:
+                self.discover()
                 if self.cancelled is not None:
                     if deadline is None:
-                        self.signal_group(self.cancelled)
+                        self.signal_owned(self.cancelled)
                         deadline = time.monotonic() + 5
                     elif time.monotonic() >= deadline:
-                        self.signal_group(signal.SIGKILL)
+                        self.signal_owned(signal.SIGKILL)
                 time.sleep(0.05)
             code = self.child.returncode
         finally:
@@ -177,8 +256,8 @@ def main():
             plan["readiness"] = f"blocked: {error}"
         print(json.dumps(plan, indent=2))
         return 0
-    # Handlers outlive the lock, including probes, cleanup and final evidence.
-    with ProcessSupervisor() as processes, (root / "resource.lock").open("a") as lock:
+    # Handlers cover lock acquisition, probes, cleanup and final evidence.
+    with (root / "resource.lock").open("a") as lock, ProcessSupervisor() as processes:
         try:
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
