@@ -67,14 +67,14 @@ async function crosses(fixture) {
   await reaches(fixture.start, true);
 }
 
-async function loadedOrder(fixture, areas = fixture.areas) {
+async function areaOrder(fixture, areas = fixture.areas) {
   await test_driver.click(fixture.start);
   for (const expected of [...areas, fixture.end]) {
     await tab();
-    assert_equals(document.activeElement, expected, "Loaded map forward order");
+    assert_equals(document.activeElement, expected, "Map forward order");
   }
   for (const expected of [...areas].reverse().concat(fixture.start)) {
     await tab(true);
-    assert_equals(document.activeElement, expected, "Loaded map reverse order");
+    assert_equals(document.activeElement, expected, "Map reverse order");
   }
 }

@@ -14,11 +14,11 @@
 promise_test(async t => {
   const fixture = mapFixture(t);
   await imageState(fixture.image, true);
-  await loadedOrder(fixture);
+  await areaOrder(fixture);
   await imageState(fixture.image, false);
   await crosses(fixture);
   await imageState(fixture.image, true);
-  await loadedOrder(fixture);
+  await areaOrder(fixture);
 }, "Loaded, broken and recovered maps preserve keyboard progress");
 
 for (const backward of [false, true]) {
@@ -31,7 +31,7 @@ for (const backward of [false, true]) {
     await imageState(fixture.image, false);
     await reaches(backward ? fixture.start : fixture.end, backward);
     await imageState(fixture.image, true);
-    await loadedOrder(fixture);
+    await areaOrder(fixture);
   }, `A focused map area becoming frameless does not trap ${backward ? "backward" : "forward"} navigation`);
 }
 
@@ -45,4 +45,31 @@ promise_test(async t => {
   fixture.map.replaceChildren();
   await crosses(fixture);
 }, "Changing the map association and removing areas preserves keyboard progress");
+
+promise_test(async t => {
+  const fixture = mapFixture(t);
+  await imageState(fixture.image, true);
+  await areaOrder(fixture);
+  fixture.image.style.visibility = "hidden";
+  fixture.image.getBoundingClientRect();
+  await crosses(fixture);
+  fixture.image.style.removeProperty("visibility");
+  fixture.image.getBoundingClientRect();
+  await areaOrder(fixture);
+}, "Hiding and revealing a mapped image preserves keyboard progress and AREA order");
+
+promise_test(async t => {
+  const fixture = mapFixture(t);
+  const links = ["First author fallback", "Second author fallback"].map(text => {
+    const link = document.createElement("a");
+    link.href = "#author-fallback";
+    link.textContent = text;
+    fixture.map.append(link);
+    return link;
+  });
+  await imageState(fixture.image, false);
+  await areaOrder(fixture, links);
+  links[0].remove();
+  await areaOrder(fixture, [links[1]]);
+}, "Rejected areas do not hide author-provided focusable MAP children after mutation");
 </script>

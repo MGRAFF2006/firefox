@@ -31,7 +31,7 @@ promise_test(async t => {
 promise_test(async t => {
   const fixture = mapFixture(t);
   await imageState(fixture.image, true);
-  await loadedOrder(fixture);
+  await areaOrder(fixture);
 }, "Loaded image map links retain forward and backward keyboard navigation");
 
 promise_test(async t => {
@@ -39,6 +39,28 @@ promise_test(async t => {
   fixture.areas[0].tabIndex = -1;
   fixture.areas[1].tabIndex = 0;
   await imageState(fixture.image, true);
-  await loadedOrder(fixture, [fixture.areas[1]]);
+  await areaOrder(fixture, [fixture.areas[1]]);
 }, "Loaded map navigation respects negative and explicit zero tabindex");
+
+promise_test(async t => {
+  const fixture = mapFixture(t);
+  fixture.image.removeAttribute("alt");
+  await imageState(fixture.image, false);
+  await areaOrder(fixture);
+}, "A broken image retaining its image frame keeps AREA navigation in both directions");
+
+promise_test(async t => {
+  const fixture = mapFixture(t);
+  fixture.areas[0].tabIndex = 1;
+  fixture.areas[1].tabIndex = 2;
+  await imageState(fixture.image, true);
+  fixture.areas[0].focus();
+  assert_equals(document.activeElement, fixture.areas[0]);
+  await tab();
+  assert_equals(document.activeElement, fixture.areas[1],
+                "Positive tabindex order moves to the second area");
+  await tab(true);
+  assert_equals(document.activeElement, fixture.areas[0],
+                "Positive tabindex order is reversible");
+}, "Loaded map areas preserve positive tabindex ordering");
 </script>
