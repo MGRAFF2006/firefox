@@ -1,0 +1,107 @@
+{
+  "pid": 3234334,
+  "tid": 3234334,
+  "measure_count": 1160,
+  "unique_measure_names": 116,
+  "parser_unmatched_interval_endpoints": 0,
+  "scopes": {
+    "whole_thread": {
+      "measure_count": null,
+      "measure_union_ms": null,
+      "parser_interval_union_ms": 2546.006462999969,
+      "deadline_yield_count": 37,
+      "sample_count": 94468,
+      "event_delay_missing": 10853,
+      "event_delay_negative_excluded": 555,
+      "raw_event_delay": {
+        "count": 83060,
+        "p50_ms": 39.830794,
+        "p95_ms": 268.303552,
+        "max_ms": 740.140158
+      },
+      "raw_event_delay_inside_parser_intervals": {
+        "count": 1789,
+        "p50_ms": 11.640581000000001,
+        "p95_ms": 27.495645999999997,
+        "max_ms": 33.672474
+      }
+    },
+    "measured": {
+      "measure_count": 1160,
+      "measure_union_ms": 66784.92352800001,
+      "parser_interval_union_ms": 0,
+      "deadline_yield_count": 0,
+      "sample_count": 43915,
+      "event_delay_missing": 15,
+      "event_delay_negative_excluded": 27,
+      "raw_event_delay": {
+        "count": 43873,
+        "p50_ms": 68.482671,
+        "p95_ms": 309.693004,
+        "max_ms": 740.140158
+      },
+      "raw_event_delay_inside_parser_intervals": {
+        "count": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      }
+    },
+    "sync": {
+      "measure_count": 580,
+      "measure_union_ms": 49353.848605999985,
+      "parser_interval_union_ms": 0,
+      "deadline_yield_count": 0,
+      "sample_count": 32581,
+      "event_delay_missing": 8,
+      "event_delay_negative_excluded": 0,
+      "raw_event_delay": {
+        "count": 32573,
+        "p50_ms": 62.799905,
+        "p95_ms": 284.673433,
+        "max_ms": 733.142222
+      },
+      "raw_event_delay_inside_parser_intervals": {
+        "count": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      }
+    },
+    "async": {
+      "measure_count": 580,
+      "measure_union_ms": 17431.07492200003,
+      "parser_interval_union_ms": 0,
+      "deadline_yield_count": 0,
+      "sample_count": 11334,
+      "event_delay_missing": 7,
+      "event_delay_negative_excluded": 27,
+      "raw_event_delay": {
+        "count": 11300,
+        "p50_ms": 95.453835,
+        "p95_ms": 334.132416,
+        "max_ms": 740.140158
+      },
+      "raw_event_delay_inside_parser_intervals": {
+        "count": 0,
+        "p50_ms": null,
+        "p95_ms": null,
+        "max_ms": null
+      }
+    }
+  },
+  "provenance": {
+    "profile_sha256": "d586a53daabb2dc0a5e593fce083ce3dedfc056334ba6e49fbc77f1ba207aa8d",
+    "source_revision_supplied": "6181e6b5f28a8fbae1d5c3ef6f6626b5a2180213",
+    "profile_version": 36,
+    "root_profile_app_build_id": "20261108230948"
+  },
+  "limits": [
+    "Raw eventDelay = queue delay plus running-event elapsed time; not scheduler CPU cost.",
+    "Quantiles weight samples equally, not CPU time, tasks, or elapsed time.",
+    "Parser marker overlap is elapsed interval coverage, not parser exclusive CPU cost.",
+    "Missing, negative and truncated data are reported, not converted to zero.",
+    "Zero parser overlap does not exclude unmarked fragment parser or tokenizer work.",
+    "Source revision is supplied provenance, not independently verified from the profile."
+  ]
+}
