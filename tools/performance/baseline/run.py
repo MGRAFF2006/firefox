@@ -22,9 +22,12 @@ from pathlib import Path
 
 from zoneinfo import ZoneInfo
 
+from full_suites import check_run
+
 HERE = Path(__file__).resolve().parent
 TOOL_ROOT = HERE.parents[2]
 TIMEZONE = ZoneInfo("Europe/Berlin")
+WORKLOAD_SHA256 = "3d835eafc3ed8bae551540683f58ec5482c7d29a1f8c74d12cc3900e752fb03b"
 
 # Reuse the reviewed repository custodian; fail closed on a missing or changed
 # dependency instead of importing a same-named module from the caller's path.
@@ -167,6 +170,17 @@ def validate_source(value):
     return source
 
 
+def workload_declaration(source):
+    raw = (HERE / "speedometer3-workload.json").read_bytes()
+    if hashlib.sha256(raw).hexdigest() != WORKLOAD_SHA256:
+        raise ValueError("Workload declaration differs from reviewed bytes")
+    declaration = json.loads(raw)
+    for name, expected in declaration["source_files"].items():
+        if digest(source / name) != expected:
+            raise ValueError(f"Workload source differs from declaration: {name}")
+    return declaration
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -214,6 +228,7 @@ def run_comparison(args, root, supervisor, source=TOOL_ROOT):
     stamp = datetime.datetime.now(TIMEZONE).strftime("%Y-%m-%dT%H-%M-%S%z")
     output = root / ("profiles" if args.profile else "runs") / stamp
     output.mkdir(parents=True)
+    declaration = workload_declaration(source)
     browsers = [
         ("chromium", "chrome", args.chromium.resolve()),
         ("official-firefox", "firefox", args.official.resolve()),
@@ -246,6 +261,13 @@ def run_comparison(args, root, supervisor, source=TOOL_ROOT):
             for name in ("package.json", "moz.yaml")
         },
         "mozconfig": (source / "tools/performance/baseline/mozconfig").read_text(),
+        "workload_declaration": declaration,
+        "workload_declaration_sha256": WORKLOAD_SHA256,
+        "workload_provenance_limits": (
+            "Source hashes and raw matrix coverage only. Caller acceptance requires "
+            "authenticated loaded URL/workload bytes and runtime-role/build receipts; "
+            "these are not attested by score.json."
+        ),
         "rounds": args.rounds,
         "profile_only": args.profile,
         "browsers": {
@@ -278,6 +300,8 @@ def run_comparison(args, root, supervisor, source=TOOL_ROOT):
                 "build.sh",
                 "preserve.sh",
                 "summarize.py",
+                "full_suites.py",
+                "speedometer3-workload.json",
             )
         },
         "browsertime_package": json.loads(
@@ -439,6 +463,12 @@ def run_comparison(args, root, supervisor, source=TOOL_ROOT):
                 raise SystemExit(
                     f"Swap I/O contaminated this run; fix host conditions before repeating: {run}"
                 )
+            try:
+                workload_declaration(source)
+                coverage = check_run(run, declaration)
+            except (OSError, ValueError) as error:
+                raise SystemExit(f"Full-suite validation failed at {run}: {error}") from error
+            (run / "full-suite-coverage.json").write_text(json.dumps(coverage, indent=2) + "\n")
             report = json.loads((run / "raptor.json").read_text())
             suites = [
                 suite

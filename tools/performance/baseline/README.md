@@ -229,3 +229,50 @@ authorize tracked source edits. New paired runtimes and a separately admitted
 `--source` is now an explicit harness option. Spell the runtime option
 `--source-build` in full: earlier argparse versions could treat `--source` only
 as an abbreviation for that runtime slot, not as a harness selector.
+
+## New matched-pair evaluation
+
+Use the same BUILD-owned sandbox after BUILD hands off preserved control and
+candidate executables with matching configuration and distinct source/build
+receipts. The legacy `--official` slot names the supplied control; it does not
+make that binary an official Mozilla build. Do not reuse historical scores.
+
+Run the smoke for each supplied Firefox under the existing owned workload
+supervisor, with a private Xvfb display and `--source /actual/harness`:
+
+```sh
+xvfb-run -a -s '-screen 0 1920x1080x24' /actual/node \
+  /executed/tools/performance/baseline/smoke.cjs \
+  /preserved/control/firefox --source /actual/harness
+```
+
+The smoke resolves Selenium/geckodriver from that harness and checks the live
+smoke-tab content PID against Firefox and Linux process identity, additional
+seccomp filters and NoNewPrivs. It records namespace observations and default
+and effective preferences. Missing evidence fails; this is a bounded content
+sandbox observation, not full security/feature compatibility or Chromium proof.
+It never enables a profiling or sandbox-disable mode. Any automation privilege
+is scoped to this isolated child. Keep the exit status alongside its JSON.
+
+First run a complete diagnostic round (`--rounds 1`) with the new control,
+candidate and Chromium, using explicit `--source`, `--root`, `--official`,
+`--source-build`, `--chromium` and `--chromedriver`. After valid diagnostics,
+start a distinct predeclared five-round/15-invocation cohort without profiling.
+The one-round diagnostic is not eligible for the comparison summary.
+
+`run.py`, `full_suites.py` and `speedometer3-workload.json` must deploy together.
+Before publishing any `score.json`, every raw Browsertime result must contain
+all ten configured internal iterations, twenty suite IDs and fifty-eight step
+IDs with complete finite measurements. The result's requested and observed
+page URLs must agree with the full local Speedometer URL without suite/tag or
+iteration overrides. Raw bytes are hashed, coverage is retained per invocation,
+and changed declared source inputs reject. Aggregate/statistics alone cannot
+stand in for the matrix. The summary's score math, round rotation, counts and
+bootstrap remain unchanged; medians are scores, not elapsed seconds.
+
+These source pins and page URLs do not authenticate HTTP response bodies.
+Bind actual served workload bytes/selection, role/config/BuildID and effective
+security/driver state in the runtime evidence before accepting a performance
+claim. Xvfb exercises a rendered document but does not prove physical display
+frames, GPU behavior, accessibility or all standards/services. Retain those
+limits and failures rather than interpreting clean isolation as security proof.

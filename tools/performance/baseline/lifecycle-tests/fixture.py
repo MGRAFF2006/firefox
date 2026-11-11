@@ -51,6 +51,11 @@ def main():
             time.sleep(.01)
         report = directory/'source/testing/mozharness/build/raptor.json'
         report.write_text(json.dumps({'suites':[{'name':'speedometer3-fixture', 'unit':'score', 'value':1.0}]}))
+        sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+        from test_full_suites import synthetic_matrix
+        raw = report.parent / "blobber_upload_dir/browsertime-results/speedometer3/browsertime.json"
+        raw.parent.mkdir(parents=True)
+        raw.write_text(json.dumps(synthetic_matrix()))
         sys.exit(int(os.environ.get('FIXTURE_EXIT', '0')))
 
 if __name__ == '__main__':

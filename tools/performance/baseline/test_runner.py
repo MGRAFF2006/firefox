@@ -22,6 +22,7 @@ import run as runner
 from pathlib import Path
 
 from run import browser_metadata, changed_artifacts
+from test_full_suites import declaration, synthetic_matrix
 
 
 class RuntimeTests(unittest.TestCase):
@@ -185,6 +186,11 @@ class ExplicitSourceTests(unittest.TestCase):
                 validate.assert_called_once_with(runner.TOOL_ROOT)
 
     def test_real_caller_source_paths_and_tool_provenance(self):
+        for mode in ("complete", "absent", "partial", "nonzero", "cancel"):
+            with self.subTest(mode=mode):
+                self.real_caller_source_paths_and_tool_provenance(mode)
+
+    def real_caller_source_paths_and_tool_provenance(self, mode):
         with tempfile.TemporaryDirectory() as directory:
             base = Path(directory);source = base / "harness";source.mkdir();root = base / "root";root.mkdir()
             (source / "mach").write_text("never execute real Mach\n")
@@ -208,11 +214,25 @@ class ExplicitSourceTests(unittest.TestCase):
                     self_check.assertIn(str(source / "tools/browsertime/node_modules/@sitespeed.io/geckodriver/vendor/geckodriver"), command)
                     self_check.assertEqual(environment["MOZCONFIG"], str(source / "tools/performance/baseline/mozconfig"))
                     (work / "raptor.json").write_text(json.dumps({"suites":[{"name":"speedometer3-synthetic", "unit":"score", "value":1}]}))
-                    return 0
+                    if mode != "absent":
+                        raw = synthetic_matrix()
+                        if mode == "partial":
+                            del raw[0]["extras"][0]["s3_internal"][0]["tests"]["Charts-chartjs"]
+                        path = work / "blobber_upload_dir/browsertime-results/speedometer3/browsertime.json"
+                        path.parent.mkdir(parents=True)
+                        path.write_text(json.dumps(raw))
+                    if mode == "cancel":
+                        raise runner.WorkloadCancelled(signal.SIGTERM)
+                    return 1 if mode == "nonzero" else 0
             self_check = self
             args = types.SimpleNamespace(profile=False, only_browser="source-firefox", rounds=1, chromium=base/"chromium", official=base/"control", source_build=base/"candidate", chromedriver=base/"chromedriver")
-            with patch.object(runner, "browser_metadata", return_value={"runtime_artifacts":{}}), patch.object(runner, "swap_counters", return_value={"pswpin":0,"pswpout":0}), patch("sys.stdout",new=io.StringIO()):
-                self.assertEqual(runner.run_comparison(args, root, Owner(), source), 0)
+            with patch.object(runner, "workload_declaration", return_value=declaration()), patch.object(runner, "browser_metadata", return_value={"runtime_artifacts":{}}), patch.object(runner, "swap_counters", return_value={"pswpin":0,"pswpout":0}), patch("sys.stdout",new=io.StringIO()):
+                if mode == "complete":
+                    self.assertEqual(runner.run_comparison(args, root, Owner(), source), 0)
+                else:
+                    message = "Full-suite validation failed" if mode in ("absent", "partial") else "Failed run retained"
+                    with self.assertRaisesRegex(SystemExit, message):
+                        runner.run_comparison(args, root, Owner(), source)
             output = next((root / "runs").iterdir());metadata = json.loads((output / "metadata.json").read_text())
             self.assertEqual(metadata["harness_source"]["path"], str(source))
             self.assertEqual(metadata["harness_source"]["mozconfig_sha256"], runner.digest(source / "tools/performance/baseline/mozconfig"))
@@ -223,7 +243,18 @@ class ExplicitSourceTests(unittest.TestCase):
             self.assertFalse((work / "raptor.json").exists())
             self.assertIn("not implied", metadata["browser_slots"]["official-firefox"])
             self.assertIn("only", metadata["toolchain_scope"].lower())
-            self.assertEqual(json.loads(next(output.glob("*-source-firefox/score.json")).read_text())["score"], 1)
+            retained = next(output.glob("*-source-firefox"))
+            if mode == "complete":
+                self.assertEqual(json.loads((retained / "score.json").read_text())["score"], 1)
+                self.assertEqual(json.loads((retained / "full-suite-coverage.json").read_text())["step_records"], 580)
+                for name in ("full_suites.py", "speedometer3-workload.json"):
+                    self.assertEqual((output / "harness" / name).read_bytes(), (Path(runner.__file__).parent / name).read_bytes())
+            else:
+                self.assertFalse((retained / "score.json").exists())
+                self.assertFalse((retained / "full-suite-coverage.json").exists())
+                self.assertTrue((retained / "exit.json").exists())
+                if mode == "cancel":
+                    self.assertEqual(json.loads((retained / "exit.json").read_text())["cancelled_signal"], signal.SIGTERM)
 
 
 if __name__ == "__main__":
