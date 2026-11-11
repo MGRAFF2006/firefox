@@ -186,7 +186,7 @@ class ExplicitSourceTests(unittest.TestCase):
                 validate.assert_called_once_with(runner.TOOL_ROOT)
 
     def test_real_caller_source_paths_and_tool_provenance(self):
-        for mode in ("complete", "absent", "partial", "nonzero", "cancel"):
+        for mode in ("complete", "absent", "partial", "nonzero", "cancel", "catalog", "catalog-absent", "catalog-mismatch", "catalog-default"):
             with self.subTest(mode=mode):
                 self.real_caller_source_paths_and_tool_provenance(mode)
 
@@ -203,7 +203,13 @@ class ExplicitSourceTests(unittest.TestCase):
                     calls.append((command, cwd))
                     self_check.assertEqual(cwd, source)
                     if command[0] == "git":
+                        if mode == "catalog-default":
+                            return subprocess.check_output(command, cwd=cwd, stderr=subprocess.STDOUT)
+                        if mode.startswith("catalog"):
+                            raise AssertionError("catalog mode must never invoke Git")
                         self_check.assertEqual(command[1:3], ["-C", str(source)])
+                        if command[-1] == "--show-toplevel":
+                            return str(source).encode()
                         return b"fixture-harness-revision"
                     return b"fixture-version"
                 def run(self, command, cwd, environment, log):
@@ -214,7 +220,7 @@ class ExplicitSourceTests(unittest.TestCase):
                     self_check.assertIn(str(source / "tools/browsertime/node_modules/@sitespeed.io/geckodriver/vendor/geckodriver"), command)
                     self_check.assertEqual(environment["MOZCONFIG"], str(source / "tools/performance/baseline/mozconfig"))
                     (work / "raptor.json").write_text(json.dumps({"suites":[{"name":"speedometer3-synthetic", "unit":"score", "value":1}]}))
-                    if mode != "absent":
+                    if mode not in ("absent", "catalog-absent"):
                         raw = synthetic_matrix()
                         if mode == "partial":
                             del raw[0]["extras"][0]["s3_internal"][0]["tests"]["Charts-chartjs"]
@@ -226,14 +232,35 @@ class ExplicitSourceTests(unittest.TestCase):
                     return 1 if mode == "nonzero" else 0
             self_check = self
             args = types.SimpleNamespace(profile=False, only_browser="source-firefox", rounds=1, chromium=base/"chromium", official=base/"control", source_build=base/"candidate", chromedriver=base/"chromedriver")
+            if mode.startswith("catalog"):
+                from test_source_receipt import write_receipt
+                receipt, sha = write_receipt(base, source)
+                if mode != "catalog-default":
+                    args.source_receipt = receipt
+                    args.source_receipt_sha256 = "0" * 64 if mode == "catalog-mismatch" else sha
+                if mode in ("catalog-mismatch", "catalog-default"):
+                    with patch.object(runner, "browser_metadata") as browser:
+                        with self.assertRaises((ValueError, subprocess.CalledProcessError)):
+                            runner.run_comparison(args, root, Owner(), source)
+                        browser.assert_not_called()
+                    self.assertFalse(list(root.rglob("score.json")))
+                    self.assertFalse(list(root.rglob("metadata.json")))
+                    return
             with patch.object(runner, "workload_declaration", return_value=declaration()), patch.object(runner, "browser_metadata", return_value={"runtime_artifacts":{}}), patch.object(runner, "swap_counters", return_value={"pswpin":0,"pswpout":0}), patch("sys.stdout",new=io.StringIO()):
-                if mode == "complete":
+                if mode in ("complete", "catalog"):
                     self.assertEqual(runner.run_comparison(args, root, Owner(), source), 0)
                 else:
-                    message = "Full-suite validation failed" if mode in ("absent", "partial") else "Failed run retained"
+                    message = "Full-suite validation failed" if mode in ("absent", "partial", "catalog-absent") else "Failed run retained"
                     with self.assertRaisesRegex(SystemExit, message):
                         runner.run_comparison(args, root, Owner(), source)
             output = next((root / "runs").iterdir());metadata = json.loads((output / "metadata.json").read_text())
+            if mode.startswith("catalog"):
+                self.assertIsNone(metadata["checkout_revision"])
+                self.assertIsNone(metadata["source_diff"])
+                self.assertEqual(metadata["harness_source"]["kind"], "catalog-extraction")
+                self.assertEqual(metadata["harness_source"]["receipt_sha256"], sha)
+                self.assertIn("INITIAL extraction", metadata["harness_source"]["limits"])
+                self.assertFalse(any(command[0] == "git" for command, _ in calls))
             self.assertEqual(metadata["harness_source"]["path"], str(source))
             self.assertEqual(metadata["harness_source"]["mozconfig_sha256"], runner.digest(source / "tools/performance/baseline/mozconfig"))
             self.assertEqual(metadata["harness_sha256"]["run.py"], runner.digest(Path(runner.__file__)))
@@ -244,7 +271,7 @@ class ExplicitSourceTests(unittest.TestCase):
             self.assertIn("not implied", metadata["browser_slots"]["official-firefox"])
             self.assertIn("only", metadata["toolchain_scope"].lower())
             retained = next(output.glob("*-source-firefox"))
-            if mode == "complete":
+            if mode in ("complete", "catalog"):
                 self.assertEqual(json.loads((retained / "score.json").read_text())["score"], 1)
                 self.assertEqual(json.loads((retained / "full-suite-coverage.json").read_text())["step_records"], 580)
                 for name in ("full_suites.py", "speedometer3-workload.json"):

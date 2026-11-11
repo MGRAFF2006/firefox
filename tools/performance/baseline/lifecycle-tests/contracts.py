@@ -72,7 +72,7 @@ def prepare(case, mode):
         p=source/'tools/performance/baseline'/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text('# fixture\n')
     (source/'testing/mozharness/build').mkdir(parents=True)
     executable(case/'bin/tmux','#!/bin/sh\nexit 1\n')
-    executable(case/'bin/git','#!/bin/sh\nprintf "fixture-source\\n"\n')
+    executable(case/'bin/git', '#!/bin/sh\nif [ "$4" = "--show-toplevel" ]; then printf "%s\\n" "$2"; else printf "fixture-source\\n"; fi\n')
     # Real baseline constructs its own PATH. This named fake replaces only xvfb/Raptor.
     executable(root/'state/node/bin/xvfb-run',f'#!/bin/sh\nexec {sys.executable} {HERE}/fixture.py leader\n')
     # Baseline's deliberately minimal runtime environment does not pass our test

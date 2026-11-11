@@ -12,8 +12,10 @@ import json
 import math
 import os
 import platform
+import re
 import shutil
 import signal
+import stat
 import tempfile
 import uuid
 import types
@@ -170,6 +172,99 @@ def validate_source(value):
     return source
 
 
+def source_identity(source, receipt_path=None, expected_sha256=None, supervisor=None):
+    if (receipt_path is None) != (expected_sha256 is None):
+        raise ValueError("--source-receipt and --source-receipt-sha256 are required together")
+    if receipt_path is None:
+        top = capture("git", "-C", str(source), "rev-parse", "--show-toplevel",
+                      source=source, supervisor=supervisor)
+        if Path(top).resolve(strict=True) != source:
+            raise ValueError("--source must be the Git top-level directory")
+        return {
+            "kind": "git-checkout",
+            "checkout_revision": capture("git", "-C", str(source), "rev-parse", "HEAD", source=source, supervisor=supervisor),
+            "source_diff": capture("git", "-C", str(source), "diff", "--stat", source=source, supervisor=supervisor),
+        }
+
+    def hash_value(value, length):
+        return isinstance(value, str) and re.fullmatch(r"[0-9a-f]{%d}" % length, value) is not None
+
+    if not hash_value(expected_sha256, 64):
+        raise ValueError("--source-receipt-sha256 must be a lowercase SHA256")
+    path = Path(receipt_path).absolute()
+
+    def identity(status):
+        return (status.st_dev, status.st_ino, status.st_mode, status.st_uid,
+                status.st_gid, status.st_size, status.st_mtime_ns, status.st_ctime_ns)
+
+    fd = os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)
+    with os.fdopen(fd, "rb") as stream:
+        before = os.fstat(stream.fileno())
+        if not stat.S_ISREG(before.st_mode) or before.st_size > 65536:
+            raise ValueError("Source receipt must be a regular file of at most 64 KiB")
+        if identity(path.lstat()) != identity(before):
+            raise ValueError("Source receipt path changed before reading")
+        raw = stream.read(65537)
+        if (len(raw) > 65536 or len(raw) != before.st_size
+                or identity(os.fstat(stream.fileno())) != identity(before)
+                or identity(path.lstat()) != identity(before)):
+            raise ValueError("Source receipt changed while reading")
+    if hashlib.sha256(raw).hexdigest() != expected_sha256:
+        raise ValueError("Source receipt SHA256 mismatch")
+
+    def unique_object(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError("Duplicate source receipt key")
+            result[key] = value
+        return result
+
+    receipt = json.loads(raw, object_pairs_hook=unique_object)
+    if not isinstance(receipt, dict) or not isinstance(receipt.get("extraction"), dict):
+        raise ValueError("Invalid source receipt object")
+    extraction = receipt["extraction"]
+    if receipt.get("status") != "PASS" or extraction.get("status") != "PASS":
+        raise ValueError("Source receipt must report PASS")
+    if (not hash_value(receipt.get("revision"), 40)
+            or extraction.get("source_revision") != receipt["revision"]
+            or not hash_value(receipt.get("tree"), 40)
+            or extraction.get("base_tree") != receipt["tree"]):
+        raise ValueError("Source receipt revision/tree mismatch")
+    canonical = extraction.get("canonical_source")
+    if (not isinstance(canonical, str) or not Path(canonical).is_absolute()
+            or Path(canonical).resolve(strict=True) != source):
+        raise ValueError("Source receipt canonical source mismatch")
+    count = extraction.get("verified_files")
+    if type(count) is not int or count <= 0:
+        raise ValueError("Source receipt verified_files must be a positive integer")
+    if (not all(hash_value(extraction.get(key), 64) for key in
+                ("base_catalog_digest", "extracted_identity_digest", "cpp_sha256"))
+            or extraction["base_catalog_digest"] != extraction["extracted_identity_digest"]
+            or not all(hash_value(receipt.get(key), 64) for key in ("archiveSHA256", "catalogSHA256"))):
+        raise ValueError("Invalid source receipt catalog digests")
+    if (extraction.get("overlay", "missing") is not None
+            or extraction.get("boundary") != "full role/operator-boundary verification, not atomic execution attestation"):
+        raise ValueError("Unsupported source receipt extraction boundary/overlay")
+    return {
+        "kind": "catalog-extraction", "checkout_revision": None, "source_diff": None,
+        "receipt_path": str(path), "receipt_sha256": expected_sha256,
+        "receipt_file_identity": list(identity(before)),
+        "initial_extraction": {
+            "revision": receipt["revision"], "tree": receipt["tree"],
+            "canonical_source": canonical, "verified_files": count,
+            **{key: extraction[key] for key in ("base_catalog_digest", "extracted_identity_digest", "cpp_sha256", "overlay", "boundary")},
+            **{key: receipt[key] for key in ("archiveSHA256", "catalogSHA256")},
+        },
+        "limits": (
+            "Caller-pinned receipt of INITIAL extraction only; not a current atomic tree "
+            "or execution attestation, nor compiled browser provenance. Generated npm/venv "
+            "outputs, subsequent candidate "
+            "patches, and runtime-role/build receipts remain separate."
+        ),
+    }
+
+
 def workload_declaration(source):
     raw = (HERE / "speedometer3-workload.json").read_bytes()
     if hashlib.sha256(raw).hexdigest() != WORKLOAD_SHA256:
@@ -187,6 +282,10 @@ def main():
         "--source", type=Path, default=TOOL_ROOT,
         help="Existing Mach/Raptor harness checkout (defaults to the tool checkout)",
     )
+    parser.add_argument("--source-receipt", type=Path,
+                        help="Opt in to caller-pinned initial catalog extraction evidence")
+    parser.add_argument("--source-receipt-sha256",
+                        help="Expected SHA256 of --source-receipt; both flags are required")
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--official", type=Path, required=True)
     parser.add_argument("--source-build", type=Path, required=True)
@@ -208,6 +307,8 @@ def main():
         parser.error("--rounds must be positive")
     if args.profile and args.only_browser not in (None, "source-firefox"):
         parser.error("Profiling is only supported for the preserved source Firefox")
+    if (args.source_receipt is None) != (args.source_receipt_sha256 is None):
+        parser.error("--source-receipt and --source-receipt-sha256 are required together")
     source = validate_source(args.source)
     root = args.root.resolve()
     root.mkdir(parents=True, exist_ok=True)
@@ -219,6 +320,10 @@ def main():
 
 
 def run_comparison(args, root, supervisor, source=TOOL_ROOT):
+    provenance = source_identity(
+        source, getattr(args, "source_receipt", None),
+        getattr(args, "source_receipt_sha256", None), supervisor,
+    )
     with tempfile.TemporaryFile() as probe:
         if supervisor.run(["tmux", "has-session", "-t", "firefox-build"],
                           source, dict(os.environ), probe) == 0:
@@ -249,8 +354,8 @@ def run_comparison(args, root, supervisor, source=TOOL_ROOT):
             "sha256": LIFECYCLE_SHA256,
             "accepted_merge": "c0bef74e02eee17d5df7a952269bbfb1557cb2ad",
         },
-        "checkout_revision": capture("git", "-C", str(source), "rev-parse", "HEAD", source=source, supervisor=supervisor),
-        "source_diff": capture("git", "-C", str(source), "diff", "--stat", source=source, supervisor=supervisor),
+        "checkout_revision": provenance["checkout_revision"],
+        "source_diff": provenance["source_diff"],
         "host": platform.uname()._asdict(),
         "cpu": Path("/proc/cpuinfo").read_text(),
         "manifest_sha256": digest(manifest),
@@ -320,12 +425,13 @@ def run_comparison(args, root, supervisor, source=TOOL_ROOT):
     metadata["collector_semantics"] = "explicit-harness-source-v1"
     metadata["tool_root"] = str(TOOL_ROOT)
     metadata["harness_source"] = {
+        **provenance,
         "path": str(source), "checkout_revision": metadata["checkout_revision"],
         "source_diff": metadata["source_diff"],
         "mozconfig_path": str(source / "tools/performance/baseline/mozconfig"),
         "mozconfig_sha256": digest(source / "tools/performance/baseline/mozconfig"),
         "mozconfig_snapshot": "harness/source-mozconfig",
-        "limits": "Harness identity/configuration only; not either supplied browser's compiled source/configuration.",
+        "limits": provenance.get("limits", "Harness identity/configuration only; not either supplied browser's compiled source/configuration."),
     }
     metadata["toolchain_scope"] = "Harness-side tools only; runtime build toolchains require separate role receipts."
     metadata["browser_slots"] = {

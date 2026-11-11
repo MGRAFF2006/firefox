@@ -276,3 +276,22 @@ security/driver state in the runtime evidence before accepting a performance
 claim. Xvfb exercises a rendered document but does not prove physical display
 frames, GPU behavior, accessibility or all standards/services. Retain those
 limits and failures rather than interpreting clean isolation as security proof.
+
+### Harness source without Git metadata
+
+Ordinary `run.py --source SOURCE` requires SOURCE to be the actual Git top-level
+and records its revision and diff. An ancestor repository is rejected.
+For a catalog-verified extraction without `.git`, explicitly pass both
+`--source-receipt PATH --source-receipt-sha256 EXPECTED_SHA256` alongside the
+actual harness `--source`. There is no automatic fallback or synthetic revision.
+The receipt must be a caller-pinned regular JSON file, at most 64 KiB, with
+matching PASS extraction evidence and canonical source. Symlinks and duplicate
+JSON keys are rejected. The runner verifies the hash and stable file identity
+while reading and retains only validated source evidence in metadata.
+
+Catalog mode sets `checkout_revision` and `source_diff` to null and identifies
+`harness_source.kind` as `catalog-extraction`. Its `initial_extraction` revision,
+tree and digests describe the initial extraction only, not an atomic current
+tree or execution attestation. Generated npm/venv outputs, subsequent candidate
+patches, and browser role/build receipts remain separate evidence. Neither mode
+attributes the harness revision to the supplied browser binaries.
