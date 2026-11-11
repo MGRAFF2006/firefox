@@ -305,6 +305,8 @@ skip-if = [
 
 ["test_constructor.html"]
 
+["test_content_list_lazy_mutations.html"]
+
 ["test_content_iterator_post_order.html"]
 
 ["test_content_iterator_pre_order.html"]

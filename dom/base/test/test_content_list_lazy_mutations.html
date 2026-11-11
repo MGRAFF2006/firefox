@@ -1,0 +1,154 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Live tag-name collection prefixes across mutations</title>
+  <script src="/tests/SimpleTest/SimpleTest.js"></script>
+  <link rel="stylesheet" href="/tests/SimpleTest/test.css">
+</head>
+<body>
+<script>
+const htmlNS = "http://www.w3.org/1999/xhtml";
+const factories = [
+  root => root.getElementsByTagName("span"),
+  root => root.getElementsByTagNameNS(htmlNS, "span"),
+  root => root.getElementsByTagNameNS("*", "span"),
+];
+
+function fixture(factory) {
+  const root = document.createElement("div");
+  root.innerHTML = '<section><span id="first"></span></section>' +
+    '<section><span id="tail"></span></section>';
+  const first = root.firstChild.firstChild;
+  const tail = root.lastChild.firstChild;
+  const list = factory(root);
+  is(list.item(0), first, "Prime only the first matching element");
+  return { root, first, tail, list };
+}
+
+function check(list, expected, label) {
+  for (let i = 0; i < expected.length; ++i) {
+    is(list.item(i), expected[i], `${label}: item ${i}`);
+  }
+  is(list.item(expected.length), null, `${label}: end of collection`);
+  is(list.length, expected.length, `${label}: length`);
+}
+
+for (const factory of factories) {
+  for (const connected of [false, true]) {
+    for (const mutation of ["insert", "remove", "move-before", "ancestor", "cursor", "descendant", "adopt"]) {
+      const { root, first, tail, list } = fixture(factory);
+      if (connected) {
+        document.body.append(root);
+      }
+      let expected;
+      switch (mutation) {
+        case "insert": {
+          const wrapper = document.createElement("section");
+          wrapper.innerHTML = '<span id="inserted"></span>';
+          root.insertBefore(wrapper, tail.parentNode);
+          expected = [first, wrapper.firstChild, tail];
+          break;
+        }
+        case "remove":
+          tail.parentNode.remove();
+          expected = [first];
+          break;
+        case "move-before":
+          root.insertBefore(tail.parentNode, first.parentNode);
+          expected = [tail, first];
+          break;
+        case "ancestor":
+          first.parentNode.remove();
+          expected = [tail];
+          break;
+        case "cursor":
+          first.remove();
+          expected = [tail];
+          break;
+        case "descendant": {
+          const child = document.createElement("span");
+          first.append(child);
+          expected = [first, child, tail];
+          break;
+        }
+        case "adopt": {
+          const other = document.implementation.createHTMLDocument();
+          other.adoptNode(root);
+          other.body.append(root);
+          tail.parentNode.remove();
+          expected = [first];
+          break;
+        }
+      }
+      check(list, expected, `${mutation}, connected=${connected}`);
+      root.remove();
+    }
+  }
+
+  const { root, first, tail, list } = fixture(factory);
+  const duplicate = document.createElement("span");
+  duplicate.id = "first";
+  root.insertBefore(duplicate, tail.parentNode);
+  is(list.namedItem("first"), first, "namedItem finishes the lazy traversal in order");
+  first.remove();
+  is(list.namedItem("first"), duplicate, "namedItem cache updates after prefix removal");
+  check(list, [duplicate, tail], "named-item cache after removal");
+}
+
+{
+  const { root, first, tail } = fixture(factories[0]);
+  const all = root.getElementsByTagName("*");
+  const firstSection = first.parentNode;
+  const tailSection = tail.parentNode;
+  is(all.item(0), firstSection, "Wildcard list caches a matching ancestor");
+  first.remove();
+  check(all, [firstSection, tailSection, tail], "Removal below wildcard cursor");
+}
+{
+  const { root, first, tail, list } = fixture(factories[1]);
+  const foreign = document.createElementNS("urn:content-list-test", "span");
+  root.insertBefore(foreign, tail.parentNode);
+  is(list.length, 2, "Length completes traversal without matching another namespace");
+  check(list, [first, tail], "Namespace filter after suffix insertion");
+}
+
+for (const connected of [false, true]) {
+  const root = document.createElement("div");
+  root.innerHTML = "<section></section><section></section>";
+  if (connected) {
+    document.body.append(root);
+  }
+  const first = root.firstChild;
+  const tail = root.lastChild;
+  const list = root.children;
+  is(list.item(0), first, "Prime a shallow collection prefix");
+  const suffix = document.createElement("section");
+  root.insertBefore(suffix, tail);
+  is(list.item(0), first, "Shallow suffix insertion preserves the first item");
+  tail.remove();
+  is(list.item(0), first, "Shallow suffix removal preserves the first item");
+  const prefix = document.createElement("section");
+  root.insertBefore(prefix, first);
+  check(list, [prefix, first, suffix], `Shallow prefix insertion, connected=${connected}`);
+  root.remove();
+}
+
+customElements.define("content-list-prefix-mover", class extends HTMLElement {
+  connectedCallback() {
+    this.parentNode.prepend(this.firstChild);
+  }
+});
+{
+  const { root, first, tail, list } = fixture(factories[0]);
+  document.body.append(root);
+  const mover = document.createElement("content-list-prefix-mover");
+  const moved = document.createElement("span");
+  mover.append(moved);
+  root.insertBefore(mover, tail.parentNode);
+  check(list, [moved, first, tail], "custom-element reaction moves suffix before prefix");
+  root.remove();
+}
+</script>
+</body>
+</html>

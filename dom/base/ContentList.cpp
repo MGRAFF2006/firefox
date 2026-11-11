@@ -656,6 +656,14 @@ void ContentList::ContentAppended(nsIContent* aFirstNewContent,
   ASSERT_IN_SYNC;
 }
 
+bool ContentList::CanIgnoreMutationAfterCachedPrefix(nsIContent* aChild) {
+  // Tag-name lists resume traversal at the last cached element. Mutations
+  // strictly after it cannot change the prefix, including its traversal cursor.
+  return !mFunc && mState == State::Lazy && !mElements.IsEmpty() &&
+         mElements.LastElement() != aChild &&
+         nsContentUtils::PositionIsBefore(mElements.LastElement(), aChild);
+}
+
 void ContentList::ContentInserted(nsIContent* aChild,
                                   const ContentInsertInfo&) {
   // Note that aChild->GetParentNode() can be null here if we are inserting into
@@ -664,7 +672,8 @@ void ContentList::ContentInserted(nsIContent* aChild,
   if (mState != State::Dirty &&
       MayContainRelevantNodes(aChild->GetParentNode()) &&
       nsContentUtils::IsInSameAnonymousTree(mRootNode, aChild) &&
-      MatchSelf<MatchSelfMode::Insertion>(aChild)) {
+      MatchSelf<MatchSelfMode::Insertion>(aChild) &&
+      !CanIgnoreMutationAfterCachedPrefix(aChild)) {
     SetDirty();
   }
 
@@ -676,7 +685,8 @@ void ContentList::ContentWillBeRemoved(nsIContent* aChild,
   if (mState != State::Dirty &&
       MayContainRelevantNodes(aChild->GetParentNode()) &&
       nsContentUtils::IsInSameAnonymousTree(mRootNode, aChild) &&
-      MatchSelf<MatchSelfMode::Removal>(aChild)) {
+      MatchSelf<MatchSelfMode::Removal>(aChild) &&
+      !CanIgnoreMutationAfterCachedPrefix(aChild)) {
     SetDirty();
   }
 
