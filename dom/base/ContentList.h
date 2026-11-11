@@ -363,6 +363,8 @@ class ContentList : public HTMLCollection, public nsStubMultiMutationObserver {
    */
   bool Match(Element* aElement);
 
+  bool CanIgnoreMutationAfterCachedPrefix(nsIContent* aChild);
+
   enum class MatchSelfMode : uint8_t {
     Insertion,
     // Also accept SVG elements that may have a class. SMIL can change their
