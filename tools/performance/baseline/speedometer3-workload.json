@@ -1,0 +1,118 @@
+{
+  "identity": {
+    "definition_sha256": "9b428b0b339a4592fe36368305774b7398ef29dcd96e7ab13167a29a6de18d6a",
+    "producer_sha256": "2d7dbbcc528aacb1bd6f55270cb2e925df0b3029e5a3f9ab89c34f38997e9cce",
+    "revision": "1386415be8fef2f6b6bbdbe1828872471c5d802a"
+  },
+  "iterations": 10,
+  "steps": {
+    "Charts-chartjs": [
+      "Draw scatter",
+      "Show tooltip",
+      "Draw opaque scatter"
+    ],
+    "Charts-observable-plot": [
+      "Stacked by 6",
+      "Stacked by 20",
+      "Dotted"
+    ],
+    "Editor-CodeMirror": [
+      "Long",
+      "Highlight"
+    ],
+    "Editor-TipTap": [
+      "Long",
+      "Highlight"
+    ],
+    "NewsSite-Next": [
+      "NavigateToUS",
+      "NavigateToWorld",
+      "NavigateToPolitics"
+    ],
+    "NewsSite-Nuxt": [
+      "NavigateToUS",
+      "NavigateToWorld",
+      "NavigateToPolitics"
+    ],
+    "Perf-Dashboard": [
+      "Render",
+      "SelectingPoints",
+      "SelectingRange"
+    ],
+    "React-Stockcharts-SVG": [
+      "Render",
+      "PanTheChart",
+      "ZoomTheChart"
+    ],
+    "TodoMVC-Angular-Complex-DOM": [
+      "Adding100Items",
+      "CompletingAllItems",
+      "DeletingAllItems"
+    ],
+    "TodoMVC-Backbone": [
+      "Adding100Items",
+      "CompletingAllItems",
+      "DeletingAllItems"
+    ],
+    "TodoMVC-JavaScript-ES5": [
+      "Adding100Items",
+      "CompletingAllItems",
+      "DeletingAllItems"
+    ],
+    "TodoMVC-JavaScript-ES6-Webpack-Complex-DOM": [
+      "Adding100Items",
+      "CompletingAllItems",
+      "DeletingAllItems"
+    ],
+    "TodoMVC-Lit-Complex-DOM": [
+      "Adding100Items",
+      "CompletingAllItems",
+      "DeletingAllItems"
+    ],
+    "TodoMVC-Preact-Complex-DOM": [
+      "Adding100Items",
+      "CompletingAllItems",
+      "DeletingAllItems"
+    ],
+    "TodoMVC-React-Complex-DOM": [
+      "Adding100Items",
+      "CompletingAllItems",
+      "DeletingAllItems"
+    ],
+    "TodoMVC-React-Redux": [
+      "Adding100Items",
+      "CompletingAllItems",
+      "DeletingAllItems"
+    ],
+    "TodoMVC-Svelte-Complex-DOM": [
+      "Adding100Items",
+      "CompletingAllItems",
+      "DeletingAllItems"
+    ],
+    "TodoMVC-Vue": [
+      "Adding100Items",
+      "CompletingAllItems",
+      "DeletingAllItems"
+    ],
+    "TodoMVC-WebComponents": [
+      "Adding100Items",
+      "CompletingAllItems",
+      "DeletingAllItems"
+    ],
+    "TodoMVC-jQuery": [
+      "Adding100Items",
+      "CompletingAllItems",
+      "DeletingAllItems"
+    ]
+  },
+  "source_files": {
+    "third_party/webkit/PerformanceTests/Speedometer3/resources/tests.mjs": "9b428b0b339a4592fe36368305774b7398ef29dcd96e7ab13167a29a6de18d6a",
+    "testing/raptor/browsertime/speedometer3.js": "2d7dbbcc528aacb1bd6f55270cb2e925df0b3029e5a3f9ab89c34f38997e9cce",
+    "testing/raptor/raptor/tests/benchmarks/speedometer-desktop.toml": "5893382f2659aeca7d06435875aa403632d1680b463f0b68ab8fd76a48a14e2d",
+    "third_party/webkit/PerformanceTests/Speedometer3/resources/benchmark-runner.mjs": "7ecb671f8c5bd749e63e3495f525b97a1fe44edffec297ca6445cb0315476fe3",
+    "third_party/webkit/PerformanceTests/Speedometer3/resources/params.mjs": "d8aea653dc34b50706f0d23af91273cbabe6b1841bdcea1cee11a97422d66eaa",
+    "third_party/webkit/PerformanceTests/Speedometer3/index.html": "f18968054ed41002a1e62c554d35805c34796157a63f5cc4c7eece50ce7b7c14",
+    "third_party/webkit/PerformanceTests/Speedometer3/resources/main.mjs": "7421d1a3ce18431dc5846e6a55bb448f1c9f164ba052fa3f3e1a4f851fede5cc",
+    "testing/raptor/browsertime/support-scripts/speedometer3.py": "f0253f15ba001ef4d9b9487647c8f0ba4d5b5b39f1ebdd1d1cca8657d3652501"
+  }
+}
