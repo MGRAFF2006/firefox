@@ -1,0 +1,177 @@
+{
+  "codemirror": {
+    "thread": "t-76",
+    "weightType": "samples",
+    "strategy": "timing",
+    "totalSamples": 627,
+    "scope": [
+      {
+        "index": 1,
+        "transforms": [
+          {
+            "type": "filter-samples",
+            "filterType": "marker-search",
+            "filter": "name:-sync,name:-async"
+          }
+        ],
+        "description": "during marker matching: \"name:-sync,name:-async\""
+      },
+      {
+        "index": 2,
+        "transforms": [
+          {
+            "type": "filter-samples",
+            "filterType": "marker-search",
+            "filter": "name:Editor-CodeMirror.Highlight-async,name:Editor-CodeMirror.Highlight-sync,name:Editor-CodeMirror.Long-async,name:Editor-CodeMirror.Long-sync"
+          }
+        ],
+        "description": "during marker matching: \"name:Editor-CodeMirror.Highlight-async,name:Editor-CodeMirror.Highlight-sync,name:Editor-CodeMirror.Long-async,name:Editor-CodeMirror.Long-sync\""
+      }
+    ],
+    "selected_functions": [
+      {
+        "functionHandle": "f-25",
+        "functionIndex": 25,
+        "name": "mozilla::TaskController::DoExecuteNextTaskOnlyMainThreadInternal(mozilla::detail::BaseAutoLock<mozilla::Mutex&> const&)",
+        "nameWithLibrary": "libxul.so!mozilla::TaskController::DoExecuteNextTaskOnlyMainThreadInternal(mozilla::detail::BaseAutoLock<mozilla::Mutex&> const&)",
+        "selfSamples": 0,
+        "selfPercentage": 0,
+        "totalSamples": 568,
+        "totalPercentage": 90.59011164274322,
+        "library": "libxul.so"
+      },
+      {
+        "functionHandle": "f-26",
+        "functionIndex": 26,
+        "name": "mozilla::TaskController::RunTask(mozilla::Task*)",
+        "nameWithLibrary": "libxul.so!mozilla::TaskController::RunTask(mozilla::Task*)",
+        "selfSamples": 0,
+        "selfPercentage": 0,
+        "totalSamples": 568,
+        "totalPercentage": 90.59011164274322,
+        "library": "libxul.so"
+      },
+      {
+        "functionHandle": "f-2971",
+        "functionIndex": 2971,
+        "name": "mozilla::TaskController::AddTask(already_AddRefed<mozilla::Task>)",
+        "nameWithLibrary": "libxul.so!mozilla::TaskController::AddTask(already_AddRefed<mozilla::Task>)",
+        "selfSamples": 0,
+        "selfPercentage": 0,
+        "totalSamples": 2,
+        "totalPercentage": 0.3189792663476874,
+        "library": "libxul.so"
+      }
+    ],
+    "input_sha256": {
+      "codemirror-all-functions.json": "3a112dd3893f9fc0d14f5af507a9afb011508e7819f868690d082e313331711e",
+      "codemirror-status.json": "b4d1565760db156fa784287bfd40f08fffe5ac3e05e9912731214a7e4ab927ce",
+      "codemirror-filter.json": "b5b5b9dca42f8d1207a4f03c485ea16b45fcd2cfdb17d1fd6c48f94fe88c414b",
+      "codemirror-samples.json": "de64c9fb4905b3c3300aef153b6c1a253d220044e56a08be63cedb67eedc7166"
+    }
+  },
+  "todo-complete": {
+    "thread": "t-76",
+    "weightType": "samples",
+    "strategy": "timing",
+    "totalSamples": 3071,
+    "scope": [
+      {
+        "index": 1,
+        "transforms": [
+          {
+            "type": "filter-samples",
+            "filterType": "marker-search",
+            "filter": "name:-sync,name:-async"
+          }
+        ],
+        "description": "during marker matching: \"name:-sync,name:-async\""
+      },
+      {
+        "index": 2,
+        "transforms": [
+          {
+            "type": "filter-samples",
+            "filterType": "marker-search",
+            "filter": "name:TodoMVC-jQuery.CompletingAllItems-async,name:TodoMVC-jQuery.CompletingAllItems-sync"
+          }
+        ],
+        "description": "during marker matching: \"name:TodoMVC-jQuery.CompletingAllItems-async,name:TodoMVC-jQuery.CompletingAllItems-sync\""
+      }
+    ],
+    "selected_functions": [
+      {
+        "functionHandle": "f-19758",
+        "functionIndex": 19758,
+        "name": "nsHtml5Tokenizer::stateLoop<nsHtml5FastestPolicySIMD>(int, char16_t, int, char16_t*, bool, int, int)",
+        "nameWithLibrary": "libxul.so!nsHtml5Tokenizer::stateLoop<nsHtml5FastestPolicySIMD>(int, char16_t, int, char16_t*, bool, int, int)",
+        "selfSamples": 42,
+        "selfPercentage": 1.3676326929338978,
+        "totalSamples": 1114,
+        "totalPercentage": 36.27482904591338,
+        "library": "libxul.so"
+      },
+      {
+        "functionHandle": "f-26564",
+        "functionIndex": 26564,
+        "name": "nsHtml5Tokenizer::appendStrBuf(char16_t)",
+        "nameWithLibrary": "libxul.so!nsHtml5Tokenizer::appendStrBuf(char16_t)",
+        "selfSamples": 10,
+        "selfPercentage": 0.32562683165092804,
+        "totalSamples": 13,
+        "totalPercentage": 0.4233148811462064,
+        "library": "libxul.so"
+      },
+      {
+        "functionHandle": "f-21794",
+        "functionIndex": 21794,
+        "name": "nsHtml5StringParser::ParseFragment(nsTSubstring<char16_t> const&, nsIContent*, nsAtom*, int, bool, bool, bool, mozilla::Maybe<RefPtr<mozilla::dom::CustomElementRegistry> >, mozilla::dom::Sanitizer*, bool)",
+        "nameWithLibrary": "libxul.so!nsHtml5StringParser::ParseFragment(nsTSubstring<char16_t> const&, nsIContent*, nsAtom*, int, bool, bool, bool, mozilla::Maybe<RefPtr<mozilla::dom::CustomElementRegistry> >, mozilla::dom::Sanitizer*, bool)",
+        "selfSamples": 1,
+        "selfPercentage": 0.0325626831650928,
+        "totalSamples": 1132,
+        "totalPercentage": 36.86095734288505,
+        "library": "libxul.so"
+      },
+      {
+        "functionHandle": "f-25",
+        "functionIndex": 25,
+        "name": "mozilla::TaskController::DoExecuteNextTaskOnlyMainThreadInternal(mozilla::detail::BaseAutoLock<mozilla::Mutex&> const&)",
+        "nameWithLibrary": "libxul.so!mozilla::TaskController::DoExecuteNextTaskOnlyMainThreadInternal(mozilla::detail::BaseAutoLock<mozilla::Mutex&> const&)",
+        "selfSamples": 0,
+        "selfPercentage": 0,
+        "totalSamples": 2839,
+        "totalPercentage": 92.44545750569847,
+        "library": "libxul.so"
+      },
+      {
+        "functionHandle": "f-26",
+        "functionIndex": 26,
+        "name": "mozilla::TaskController::RunTask(mozilla::Task*)",
+        "nameWithLibrary": "libxul.so!mozilla::TaskController::RunTask(mozilla::Task*)",
+        "selfSamples": 0,
+        "selfPercentage": 0,
+        "totalSamples": 2839,
+        "totalPercentage": 92.44545750569847,
+        "library": "libxul.so"
+      },
+      {
+        "functionHandle": "f-2971",
+        "functionIndex": 2971,
+        "name": "mozilla::TaskController::AddTask(already_AddRefed<mozilla::Task>)",
+        "nameWithLibrary": "libxul.so!mozilla::TaskController::AddTask(already_AddRefed<mozilla::Task>)",
+        "selfSamples": 0,
+        "selfPercentage": 0,
+        "totalSamples": 1,
+        "totalPercentage": 0.0325626831650928,
+        "library": "libxul.so"
+      }
+    ],
+    "input_sha256": {
+      "todo-complete-all-functions.json": "cb01586948ea2f4c18089c4ac078a055396c9b56567e61e78e03fcce4ec76dc6",
+      "todo-complete-status.json": "69cd8a135454ae38c39fdcfc686445490e98fdc2902e6a3ab750f2d1578e5940",
+      "todo-complete-filter.json": "5fe476cffe7fcfc8c61114c2e8198e3d5303fff7d399046dd422ea0a56215693",
+      "todo-complete-samples.json": "c54078e19bf04e65c6bed504ccff5e58beb5dcb0edf38dbcf77f7919497384cb"
+    }
+  }
+}
