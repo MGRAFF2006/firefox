@@ -113,6 +113,27 @@ for (const factory of factories) {
   check(list, [first, tail], "Namespace filter after suffix insertion");
 }
 
+for (const connected of [false, true]) {
+  const root = document.createElement("div");
+  root.innerHTML = "<section></section><section></section>";
+  if (connected) {
+    document.body.append(root);
+  }
+  const first = root.firstChild;
+  const tail = root.lastChild;
+  const list = root.children;
+  is(list.item(0), first, "Prime a shallow collection prefix");
+  const suffix = document.createElement("section");
+  root.insertBefore(suffix, tail);
+  is(list.item(0), first, "Shallow suffix insertion preserves the first item");
+  tail.remove();
+  is(list.item(0), first, "Shallow suffix removal preserves the first item");
+  const prefix = document.createElement("section");
+  root.insertBefore(prefix, first);
+  check(list, [prefix, first, suffix], `Shallow prefix insertion, connected=${connected}`);
+  root.remove();
+}
+
 customElements.define("content-list-prefix-mover", class extends HTMLElement {
   connectedCallback() {
     this.parentNode.prepend(this.firstChild);

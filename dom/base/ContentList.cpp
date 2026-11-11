@@ -660,6 +660,7 @@ bool ContentList::CanIgnoreMutationAfterCachedPrefix(nsIContent* aChild) {
   // Tag-name lists resume traversal at the last cached element. Mutations
   // strictly after it cannot change the prefix, including its traversal cursor.
   return !mFunc && mState == State::Lazy && !mElements.IsEmpty() &&
+         mElements.LastElement() != aChild &&
          nsContentUtils::PositionIsBefore(mElements.LastElement(), aChild);
 }
 
