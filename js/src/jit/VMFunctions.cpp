@@ -1830,14 +1830,9 @@ static MOZ_ALWAYS_INLINE bool MaybeGetNativePropertyAndWriteToCache(
   }
 }
 
-bool GetNativeDataPropertyPureWithCacheLookup(JSContext* cx, JSObject* obj,
-                                              PropertyKey key,
-                                              MegamorphicCacheEntry* entry,
-                                              Value* vp) {
-  AutoUnsafeCallWithABI unsafe;
-
-  // If we're on x86, we didn't have enough registers to populate this
-  // directly in Baseline JITted code, so we do the lookup here.
+static MOZ_ALWAYS_INLINE bool GetNativeDataPropertyWithCacheLookup(
+    JSContext* cx, JSObject* obj, PropertyKey key, MegamorphicCacheEntry* entry,
+    Value* vp) {
   Shape* receiverShape = obj->shape();
   MegamorphicCache& cache = cx->caches().megamorphicCache;
 
@@ -1869,6 +1864,17 @@ bool GetNativeDataPropertyPureWithCacheLookup(JSContext* cx, JSObject* obj,
   }
 
   return MaybeGetNativePropertyAndWriteToCache<NoGC>(cx, obj, key, entry, vp);
+}
+
+bool GetNativeDataPropertyPureWithCacheLookup(JSContext* cx, JSObject* obj,
+                                              PropertyKey key,
+                                              MegamorphicCacheEntry* entry,
+                                              Value* vp) {
+  AutoUnsafeCallWithABI unsafe;
+
+  // If we're on x86, we didn't have enough registers to populate this
+  // directly in Baseline JITted code, so we do the lookup here.
+  return GetNativeDataPropertyWithCacheLookup(cx, obj, key, entry, vp);
 }
 
 bool CheckProxyGetByValueResult(JSContext* cx, HandleObject obj,
@@ -1971,10 +1977,8 @@ bool GetNativeDataPropertyByValuePure(JSContext* cx, JSObject* obj,
     return false;
   }
 
-  Shape* receiverShape = obj->shape();
-  MegamorphicCache& cache = cx->caches().megamorphicCache;
   if (!entry) {
-    cache.lookup(receiverShape, key, &entry);
+    return GetNativeDataPropertyWithCacheLookup(cx, obj, key, entry, vp + 1);
   }
 
   Value* res = vp + 1;
