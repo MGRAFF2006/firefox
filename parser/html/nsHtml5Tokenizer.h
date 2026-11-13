@@ -505,18 +505,11 @@ class nsHtml5Tokenizer {
               NS_HTML5_BREAK(stateloop);
             }
             c = P::checkChar(this, buf, pos);
-            if (c >= 'A' && c <= 'Z') {
+            char16_t folded = (char16_t)(c | 0x20);
+            if (folded >= 'a' && folded <= 'z') {
               endTag = false;
               clearStrBufBeforeUse();
-              appendStrBuf((char16_t)(c + 0x20));
-              containsHyphen = false;
-              state = P::transition(mViewSource.get(),
-                                    nsHtml5Tokenizer::TAG_NAME, reconsume, pos);
-              NS_HTML5_BREAK(tagopenloop);
-            } else if (c >= 'a' && c <= 'z') {
-              endTag = false;
-              clearStrBufBeforeUse();
-              appendStrBuf(c);
+              appendStrBuf(folded);
               containsHyphen = false;
               state = P::transition(mViewSource.get(),
                                     nsHtml5Tokenizer::TAG_NAME, reconsume, pos);

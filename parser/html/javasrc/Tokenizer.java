@@ -1692,48 +1692,13 @@ public class Tokenizer implements Locator, Locator2 {
                          * If the content model flag is set to the PCDATA state
                          * Consume the next input character:
                          */
-                        if (c >= 'A' && c <= 'Z') {
-                            /*
-                             * U+0041 LATIN CAPITAL LETTER A through to U+005A
-                             * LATIN CAPITAL LETTER Z Create a new start tag
-                             * token,
-                             */
+                        char folded = (char) (c | 0x20);
+                        if (folded >= 'a' && folded <= 'z') {
                             endTag = false;
-                            /*
-                             * set its tag name to the lowercase version of the
-                             * input character (add 0x0020 to the character's
-                             * code point),
-                             */
                             clearStrBufBeforeUse();
-                            appendStrBuf((char) (c + 0x20));
+                            appendStrBuf(folded);
                             containsHyphen = false;
-                            /* then switch to the tag name state. */
                             state = transition(state, Tokenizer.TAG_NAME, reconsume, pos);
-                            /*
-                             * (Don't emit the token yet; further details will
-                             * be filled in before it is emitted.)
-                             */
-                            // `break` optimizes; `continue stateloop;` would be valid
-                            break tagopenloop;
-                        } else if (c >= 'a' && c <= 'z') {
-                            /*
-                             * U+0061 LATIN SMALL LETTER A through to U+007A
-                             * LATIN SMALL LETTER Z Create a new start tag
-                             * token,
-                             */
-                            endTag = false;
-                            /*
-                             * set its tag name to the input character,
-                             */
-                            clearStrBufBeforeUse();
-                            appendStrBuf(c);
-                            containsHyphen = false;
-                            /* then switch to the tag name state. */
-                            state = transition(state, Tokenizer.TAG_NAME, reconsume, pos);
-                            /*
-                             * (Don't emit the token yet; further details will
-                             * be filled in before it is emitted.)
-                             */
                             // `break` optimizes; `continue stateloop;` would be valid
                             break tagopenloop;
                         }
