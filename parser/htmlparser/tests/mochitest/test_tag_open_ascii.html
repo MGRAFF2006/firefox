@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>ASCII letters and original code units in the tag open state</title>
+<script src="/tests/SimpleTest/SimpleTest.js"></script>
+<link rel="stylesheet" href="/tests/SimpleTest/test.css">
+<script>
+for (const parse of [
+  input => {
+    const container = document.createElement("div");
+    container.innerHTML = input;
+    return container;
+  },
+  input => new DOMParser().parseFromString(`<!DOCTYPE html><body>${input}`, "text/html").body,
+]) {
+  for (const letter of "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz") {
+    const root = parse(`<${letter} data-value="&amp;">text</${letter}>`);
+    is(root.childNodes.length, 1, `one element for ${letter}`);
+    is(root.firstChild.localName, letter.toLowerCase(), `ASCII tag name for ${letter}`);
+    is(root.firstChild.getAttribute("data-value"), "&", "attribute after tag name");
+    is(root.firstChild.textContent, "text", "element content");
+  }
+  for (const codeUnit of ["@", "[", "`", "{", "\u0080", "\u00c0", "\u212a", "\ud800", "\udfff", "\ud83d\ude00"]) {
+    const input = `<${codeUnit}>`;
+    const root = parse(input);
+    is(root.childElementCount, 0, "non-ASCII-letter tag opener stays text");
+    is(root.textContent, input, "invalid tag opener preserves original UTF-16");
+  }
+  is(parse("<\u0000>").textContent, "<>", "null is reconsumed in data state");
+  is(parse("<\r\n>").textContent, "<\n>", "CRLF is reconsumed and normalized");
+  is(parse("<").textContent, "<", "EOF after tag opener preserves less-than sign");
+  const comment = parse("<?target>").firstChild;
+  is(comment.nodeType, Node.COMMENT_NODE, "question mark opens bogus comment");
+  is(comment.data, "?target", "bogus comment preserves original question mark");
+}
+</script>

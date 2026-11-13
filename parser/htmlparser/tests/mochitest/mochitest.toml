@@ -239,3 +239,5 @@ support-files = [
   "file_xml_parse_error.js",
   "file_xml_parse_error.xml",
 ]
+
+["test_tag_open_ascii.html"]
